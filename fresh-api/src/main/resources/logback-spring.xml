@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration  scan="true" scanPeriod="60 seconds" debug="false">
+    <!-- 主要还是针对多个应用写同一个日志文件，可以通过在 <pattern>%d %contextName [%t] %level %logger{36} - %msg%n</pattern> 中区分出日志吧-->
+    <contextName>fresh-yc</contextName>
+    <property name="log.path" value="/logs/fresh/log" />
+    <property name="logName" value="fresh"/>
+    <!--输出到控制台-->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- ThresholdFilter为系统定义的拦截器，例如我们用ThresholdFilter来过滤掉ERROR级别以下的日志不输出到文件中-->
+        <!-- <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+             <level>ERROR</level>
+         </filter>-->
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level [%logger{20}:%line] - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 支持多个jvm操作同一个日志文件-->
+        <!--<Prudent>true</Prudent>-->
+        <file>${log.path}/${logName}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.path}/${logName}.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!--<maxHistory>93</maxHistory>-->
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level [%logger{10}:%line] - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="console"/>
+        <appender-ref ref="file" />
+    </root>
+    <!-- logback为java中的包 -->
+    <!--<logger name="com.dudu.controller"/>-->
+    <!--logback.LogbackDemo：类的全路径 -->
+    <!--<logger name="com.dudu.controller.LearnController" level="WARN" additivity="true">-->
+    <!--<appender-ref ref="console"/>-->
+    <!--</logger>-->
+
+
+
+</configuration>
