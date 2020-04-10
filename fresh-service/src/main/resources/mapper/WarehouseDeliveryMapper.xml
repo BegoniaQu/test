@@ -2,4 +2,18 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.yc.fresh.service.mapper.WarehouseDeliveryMapper">
 
+    <select id="listBinding" resultType="com.yc.fresh.service.dto.DmBindingDTO" parameterType="java.util.Map">
+      select a.id as bindId, a.warehouse_code as warehouseCode, c.name as warehouseName, a.dm_id as dmId, a.dm_name as dmName, b.mobile
+        from warehouse_delivery a
+        left join deliveryman_info b on a.dm_id = b.dm_id
+        left join warehouse c on a.warehouse_code = c.code
+        <where>
+            <if test="map.warehouseCode != null">
+                a.warehouse_code = #{map.warehouseCode}
+            </if>
+            <if test="map.dmName != null">
+                a.dm_name like '%${map.dmName}%'
+            </if>
+        </where>
+    </select>
 </mapper>

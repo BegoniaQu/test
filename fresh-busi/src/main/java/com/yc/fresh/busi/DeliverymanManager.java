@@ -1,6 +1,8 @@
 package com.yc.fresh.busi;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.yc.fresh.busi.validator.DeliverymanValidator;
 import com.yc.fresh.busi.validator.WarehouseValidator;
@@ -8,11 +10,18 @@ import com.yc.fresh.common.ServiceAssert;
 import com.yc.fresh.common.utils.DateUtils;
 import com.yc.fresh.service.IDeliverymanInfoService;
 import com.yc.fresh.service.IWarehouseDeliveryService;
+import com.yc.fresh.service.dto.DmBindingDTO;
 import com.yc.fresh.service.entity.DeliverymanInfo;
 import com.yc.fresh.service.entity.WarehouseDelivery;
+import com.yc.fresh.service.enums.DeliverymanStatusEnum;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -89,7 +98,22 @@ public class DeliverymanManager {
 
 
 
+    @Transactional(readOnly = true)
+    public IPage<DmBindingDTO> doListBinding(String warehouseCode, String dmName, int pn, int ps) {
+        Map<String, Object> qryMap = new HashMap<>();
+        qryMap.put("pn", pn);
+        qryMap.put("ps", ps);
+        qryMap.put("warehouseCode", StringUtils.isEmpty(warehouseCode) ? null : warehouseCode);
+        qryMap.put("dmName", StringUtils.isEmpty(dmName) ? null : dmName);
+        return this.warehouseDeliveryService.doListBinding(qryMap);
+    }
 
+
+    public List<DeliverymanInfo> findDm() {
+        QueryWrapper<DeliverymanInfo> queryWrapper = Wrappers.query();
+        queryWrapper.eq(DeliverymanInfo.STATUS, DeliverymanStatusEnum.ok.getV());
+        return this.deliverymanInfoService.list(queryWrapper);
+    }
 
 
 

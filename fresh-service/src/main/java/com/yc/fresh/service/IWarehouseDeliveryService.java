@@ -1,7 +1,12 @@
 package com.yc.fresh.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.yc.fresh.service.dto.DmBindingDTO;
 import com.yc.fresh.service.entity.WarehouseDelivery;
 import com.baomidou.mybatisplus.extension.service.IService;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -13,4 +18,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IWarehouseDeliveryService extends IService<WarehouseDelivery> {
 
+    IPage<DmBindingDTO> doListBinding(Map<String, Object> paramMap);
 }
