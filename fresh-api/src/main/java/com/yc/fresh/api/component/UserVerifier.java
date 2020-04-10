@@ -33,10 +33,11 @@ public class UserVerifier {
     public UserInfo verify(HttpServletRequest request) {
         String token = request.getHeader("tk");
         String str = (String)request.getAttribute("user");
+        request.removeAttribute("user"); //获取后移除
         Long userId = KeyUtils.getUserId(str);
         UserInfo userInfo = customerManager.get(userId);
         if(userInfo.getStatus() == PersonStatusEnum.close.getV()){
-            throw new SCUnAuthorizedRuntimeException("您的账号已停用");
+            throw new SCUnAuthorizedRuntimeException("您的账号已被封禁,如有疑问,请联系客服");
         }
         if(!token.equals(userInfo.getTk())){//不是最新的token
             throw new SCTokenExpiredRuntimeException("illegal operation");

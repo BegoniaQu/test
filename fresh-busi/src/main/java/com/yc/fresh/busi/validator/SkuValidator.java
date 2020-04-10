@@ -21,9 +21,9 @@ public class SkuValidator implements Validator{
     }
 
     public SkuInfo validateSkuId(Long skuId) {
-        Assert.notNull(skuId, getErrorMsg("null(skuId) found"));
+        Assert.notNull(skuId, nullMsg("skuId"));
         SkuInfo skuInfo = skuInfoService.getById(skuId);
-        Assert.notNull(skuId, getErrorMsg("unknown(skuId)"));
+        Assert.notNull(skuId, unknownMsg("skuId"));
         return skuInfo;
     }
 }

@@ -35,22 +35,22 @@ public class GdCategoryValidator implements Validator{
      * @return
      */
     public GdCategory validateId(Integer categoryId) {
-        Assert.notNull(categoryId, getErrorMsg("null(categoryId) found"));
+        Assert.notNull(categoryId, nullMsg("categoryId"));
         GdCategory gdCategory = this.gdCategoryService.getById(categoryId);
-        Assert.notNull(gdCategory, getErrorMsg("unknown(categoryId)"));
-        Assert.isTrue(gdCategory.getStatus() == GdCategoryStatusEnum.AVAILABLE.getV(), getErrorMsg("invalid(categoryId)"));
+        Assert.notNull(gdCategory, unknownMsg("categoryId"));
+        Assert.isTrue(gdCategory.getStatus() == GdCategoryStatusEnum.AVAILABLE.getV(), invalidMsg("categoryId"));
         return gdCategory;
     }
 
     public GdCategory validate(Integer fCategoryId, Integer sCategoryId) {
-        Assert.notNull(fCategoryId, getErrorMsg("null(categoryId) found"));
-        Assert.notNull(sCategoryId, getErrorMsg("null(categoryId) found"));
+        Assert.notNull(fCategoryId, nullMsg("fCategoryId"));
+        Assert.notNull(sCategoryId, nullMsg("sCategoryId"));
         QueryWrapper<GdCategory> queryWrapper = Wrappers.query();
         queryWrapper.eq(GdCategory.ID, sCategoryId);
         queryWrapper.eq(GdCategory.PARENT_ID, fCategoryId);
         queryWrapper.eq(GdCategory.STATUS, GdCategoryStatusEnum.AVAILABLE.getV());
         GdCategory one = this.gdCategoryService.getOne(queryWrapper);
-        Assert.notNull(one, getErrorMsg("illegal request"));
+        Assert.notNull(one, invalidMsg("categoryId"));
         return one;
     }
 

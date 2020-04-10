@@ -13,7 +13,7 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author Quy
- * @since 2019-11-22
+ * @since 2020-04-09
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -31,29 +31,17 @@ public class WarehouseDelivery implements Serializable {
     private String warehouseCode;
 
     /**
-     * 配送人
+     * 配送人Id
      */
-    private String deliverer;
+    private Long dmId;
 
-    /**
-     * 配送人联系方式
-     */
-    private String delivererMobile;
-
-    /**
-     * 头像
-     */
-    private String photo;
+    private String dmName;
 
 
     public static final String ID = "id";
 
     public static final String WAREHOUSE_CODE = "warehouse_code";
 
-    public static final String DELIVERER = "deliverer";
-
-    public static final String DELIVERER_MOBILE = "deliverer_mobile";
-
-    public static final String PHOTO = "photo";
+    public static final String DM_ID = "dm_id";
 
 }

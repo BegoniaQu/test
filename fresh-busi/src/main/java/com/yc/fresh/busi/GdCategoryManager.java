@@ -47,7 +47,7 @@ public class GdCategoryManager {
     @Transactional(rollbackFor = Exception.class)
     public void doUpdate(GdCategory t) {
         Integer parentId = t.getParentId();
-        if (parentId != null) {
+        if (parentId != null && parentId > 0) {
             gdCategoryValidator.validateId(parentId);
         }
         boolean isOk = this.gdCategoryService.updateById(t);
@@ -62,7 +62,7 @@ public class GdCategoryManager {
         wrapper.eq(GdCategory.ID, categoryId);
         wrapper.eq(GdCategory.STATUS, GdCategoryStatusEnum.AVAILABLE.getV());
         boolean isOk = this.gdCategoryService.update(wrapper);
-        ServiceAssert.isOk(isOk, "revoke category failed");
+        ServiceAssert.isOk(isOk, "del category failed");
     }
 
     public List<GdCategory> query(Integer parentId, Integer status) {

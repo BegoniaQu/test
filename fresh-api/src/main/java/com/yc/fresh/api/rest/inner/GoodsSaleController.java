@@ -2,7 +2,7 @@ package com.yc.fresh.api.rest.inner;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.yc.fresh.api.rest.inner.builder.LockNameBuilder;
+import com.yc.fresh.api.builder.LockNameBuilder;
 import com.yc.fresh.api.rest.inner.convertor.SaleGoodsConvertor;
 import com.yc.fresh.api.rest.inner.req.bean.*;
 import com.yc.fresh.api.rest.inner.resp.bean.GoodsDetailRespBean;
@@ -64,7 +64,7 @@ public class GoodsSaleController {
     public void add(@Valid @RequestBody GoodsAddReqBean reqBean) {
         String lockName = LockNameBuilder.buildStock(reqBean.getWarehouseCode(), String.valueOf(reqBean.getSkuId()));
         LockProxy lock = distributedLock.lock(lockName);
-        Assert.notNull(lock, "其他人员正在操作当前数据, 请稍后重试");
+        Assert.notNull(lock, "资源占用中, 请稍后重试");
         GoodsSaleInfo goodsSaleInfo = SaleGoodsConvertor.convert2Entity(reqBean);
         String goodsId = idGenerator.generate();
         goodsSaleInfo.setGoodsId(goodsId);
@@ -90,12 +90,11 @@ public class GoodsSaleController {
     public GoodsDetailRespBean getById(@ApiParam("商品ID") @NotBlank @PathVariable String goodsId) {
         GoodsSaleInfo goods = this.saleGoodsManager.doGet(goodsId);
         //分类
-        List<GdCategory> gdCategories = gdCategoryManager.query(goods.getFCategoryId(), null); //查一级分类
-        GdCategory parent = gdCategories.get(0);
+        GdCategory par = gdCategoryManager.getById(goods.getFCategoryId());
         GdCategory sub = gdCategoryManager.getById(goods.getSCategoryId());
         //仓库
         Warehouse warehouse = warehouseManager.getByCode(goods.getWarehouseCode());
-        return SaleGoodsConvertor.convert2DetailBean(goods, parent, sub, warehouse);
+        return SaleGoodsConvertor.convert2DetailBean(goods, par, sub, warehouse);
     }
 
 

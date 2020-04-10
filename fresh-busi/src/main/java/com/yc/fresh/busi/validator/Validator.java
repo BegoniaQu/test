@@ -6,7 +6,20 @@ package com.yc.fresh.busi.validator;
  */
 public interface Validator {
 
-    default String getErrorMsg(String msg) {
+    /*default String getErrorMsg(String msg) {
         return "verify failed: " + msg;
+    }*/
+
+    default String nullMsg(String col) {
+        return "null(" + col + ") found";
     }
+    default String unknownMsg(String col) {
+        return "unknown(" + col + ")";
+    }
+
+    default String invalidMsg(String col) {
+        return "invalid(" + col + ")";
+    }
+
+
 }

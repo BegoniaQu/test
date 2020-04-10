@@ -10,6 +10,8 @@ import com.yc.fresh.common.utils.KeyUtils;
 import com.yc.fresh.service.entity.UserInfo;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
+
 /**
  * Created by quy on 2019/11/28.
  * Motto: you can do it
@@ -36,10 +38,12 @@ public class CustomerConvertor {
     }
 
     public static UserInfo convert2Entity(RegisterReqBean reqBean, String openid) {
+        LocalDateTime currentDate = DateUtils.getCurrentDate();
         UserInfo t = new UserInfo();
         t.setMobile(reqBean.getMobile());
         t.setWxOpenId(openid);
-        t.setCreateTime(DateUtils.getCurrentDate());
+        t.setCreateTime(currentDate);
+        t.setLastModifiedTime(currentDate);
         return t;
     }
 

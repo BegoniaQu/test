@@ -31,11 +31,11 @@ public class MpCodeGenerator {
 
         // 数据源配置
         DataSourceConfig dsc = new DataSourceConfig();
-        dsc.setUrl("jdbc:mysql://172.16.220.159:3306/fresh?useUnicode=true&useSSL=false&characterEncoding=utf8");
+        dsc.setUrl("jdbc:mysql://47.92.175.151:3306/fresh?useUnicode=true&useSSL=false&characterEncoding=utf8");
         // dsc.setSchemaName("public");
         dsc.setDriverName("com.mysql.cj.jdbc.Driver");
-        dsc.setUsername("admin");
-        dsc.setPassword("Hello@123$");
+        dsc.setUsername("fresh");
+        dsc.setPassword("fresh_2020$sub#");
         mpg.setDataSource(dsc);
 
         // 包配置

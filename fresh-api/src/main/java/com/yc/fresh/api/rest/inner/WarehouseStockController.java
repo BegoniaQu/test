@@ -2,7 +2,7 @@ package com.yc.fresh.api.rest.inner;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.yc.fresh.api.rest.inner.builder.LockNameBuilder;
+import com.yc.fresh.api.builder.LockNameBuilder;
 import com.yc.fresh.api.rest.inner.convertor.WarehouseStockConvertor;
 import com.yc.fresh.api.rest.inner.req.bean.*;
 import com.yc.fresh.api.rest.inner.resp.bean.StockPageRespBean;
@@ -32,6 +32,7 @@ import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 /**
  * Created by quy on 2019/11/26.
  * Motto: you can do it
+ * 库存管理目前只是最简单的，后续待完善
  */
 @RestController
 @RequestMapping("/rest/inner/stock")
@@ -63,6 +64,10 @@ public class WarehouseStockController {
         lock.release();
     }
 
+    /**
+     *此处的库中更新后续应该只用于特殊情况的价格和数量的变动
+     * @param reqBean
+     */
     @PostMapping(value = "/sku/part/edit")
     @ApiOperation(value="库存更新", produces=APPLICATION_JSON_VALUE, httpMethod = "POST")
     public void updateStock(@Valid @RequestBody StockNumUptReqBean reqBean) {
@@ -75,7 +80,7 @@ public class WarehouseStockController {
         //加锁 warehouseCode + skuId  还有就是在添加goodsSaleInfo时，也要加一样的锁 不然无法保证废弃时没有同时添加goodsSaleInfo
         String lockName = LockNameBuilder.buildStock(reqBean.getWarehouseCode(), String.valueOf(reqBean.getSkuId()));
         LockProxy lock = distributedLock.lock(lockName);
-        Assert.notNull(lock, "其他人员正在操作当前数据, 请稍后重试");
+        Assert.notNull(lock, "资源占用中, 请稍后重试");
         this.warehouseStockManager.doDel(reqBean.getWarehouseCode(), reqBean.getSkuId());
         lock.release();
     }

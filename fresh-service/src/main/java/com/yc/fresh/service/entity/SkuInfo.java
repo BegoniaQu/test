@@ -53,6 +53,8 @@ public class SkuInfo implements Serializable {
      */
     private String spec;
 
+    private Integer status; //0-未使用，1-已使用
+
     /**
      * 创建时间
      */
@@ -82,4 +84,5 @@ public class SkuInfo implements Serializable {
 
     public static final String S_CATEGORY_ID = "s_category_id";
 
+    public static final String STATUS = "status";
 }

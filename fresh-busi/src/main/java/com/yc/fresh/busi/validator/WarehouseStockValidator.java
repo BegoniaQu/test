@@ -22,13 +22,13 @@ public class WarehouseStockValidator implements Validator{
     }
 
     public WarehouseStock validate(String warehouseCode, Long skuId) {
-        Assert.hasText(warehouseCode, getErrorMsg("null(warehouseCode) found"));
-        Assert.notNull(skuId, getErrorMsg("null(skuId) found"));
+        Assert.hasText(warehouseCode, nullMsg("warehouseCode"));
+        Assert.notNull(skuId, nullMsg("skuId"));
         QueryWrapper<WarehouseStock> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(WarehouseStock.WAREHOUSE_CODE, warehouseCode);
         queryWrapper.eq(WarehouseStock.SKU_ID, skuId);
         WarehouseStock one = warehouseStockService.getOne(queryWrapper);
-        Assert.notNull(one, getErrorMsg("invalid(warehouseCode, skuId)"));
+        Assert.notNull(one, invalidMsg("warehouseCode, skuId"));
         return one;
     }
 }

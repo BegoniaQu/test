@@ -3,6 +3,7 @@ package com.yc.fresh.busi;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.yc.fresh.service.enums.SkuStatusEnum;
 import com.yc.fresh.busi.validator.GdCategoryValidator;
 import com.yc.fresh.busi.validator.SkuValidator;
 import com.yc.fresh.common.ServiceAssert;
@@ -51,7 +52,8 @@ public class SkuManager {
     @Transactional(rollbackFor = Exception.class)
     public void doUpdate(SkuInfo t) {
         gdCategoryValidator.validate(t.getFCategoryId(), t.getSCategoryId());
-        skuValidator.validateSkuId(t.getSkuId());
+        SkuInfo sku = skuValidator.validateSkuId(t.getSkuId());
+        Assert.isTrue(sku.getStatus() == SkuStatusEnum.unuse.getV(), "SKU已被使用, 无法更新");
         UnitTypeEnum.verify(t.getUnitType());
         //要没有库存
         QueryWrapper<WarehouseStock> queryWrapper = Wrappers.query();

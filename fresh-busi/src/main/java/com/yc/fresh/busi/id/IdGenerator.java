@@ -23,7 +23,6 @@ public class IdGenerator {
     private static final int initValue = 1;
     private static final int tailLen = 3; //末尾位数
 
-    public static final String USRID_PREFIX = "50";
     public static final String ORDERID_PREFIX = "60";
 
     @Autowired

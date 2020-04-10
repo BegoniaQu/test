@@ -4,12 +4,14 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.yc.fresh.service.enums.SkuStatusEnum;
 import com.yc.fresh.busi.validator.SkuValidator;
 import com.yc.fresh.busi.validator.WarehouseStockValidator;
 import com.yc.fresh.busi.validator.WarehouseValidator;
 import com.yc.fresh.common.ServiceAssert;
 import com.yc.fresh.common.utils.DateUtils;
 import com.yc.fresh.service.IGoodsSaleInfoService;
+import com.yc.fresh.service.ISkuInfoService;
 import com.yc.fresh.service.IWarehouseStockService;
 import com.yc.fresh.service.entity.GoodsSaleInfo;
 import com.yc.fresh.service.entity.SkuInfo;
@@ -37,19 +39,21 @@ public class WarehouseStockManager {
     private final SkuValidator skuValidator;
     private final WarehouseStockValidator warehouseStockValidator;
     private final IGoodsSaleInfoService goodsSaleInfoService;
+    private final ISkuInfoService skuInfoService;
 
 
     @Autowired
-    public WarehouseStockManager(IWarehouseStockService warehouseStockService, WarehouseValidator warehouseValidator, SkuValidator skuValidator, WarehouseStockValidator warehouseStockValidator, IGoodsSaleInfoService goodsSaleInfoService) {
+    public WarehouseStockManager(IWarehouseStockService warehouseStockService, WarehouseValidator warehouseValidator, SkuValidator skuValidator, WarehouseStockValidator warehouseStockValidator, IGoodsSaleInfoService goodsSaleInfoService, ISkuInfoService skuInfoService) {
         this.warehouseStockService = warehouseStockService;
         this.warehouseValidator = warehouseValidator;
         this.skuValidator = skuValidator;
         this.warehouseStockValidator = warehouseStockValidator;
         this.goodsSaleInfoService = goodsSaleInfoService;
+        this.skuInfoService = skuInfoService;
     }
 
     /**
-     * 成本价暂时不考虑加权计算
+     * 新增库存商品以及初始化库存
      * @param t
      */
     @Transactional(rollbackFor = Exception.class)
@@ -64,6 +68,14 @@ public class WarehouseStockManager {
         t.setSpec(skuInfo.getSpec());
         boolean flag = this.warehouseStockService.save(t);
         ServiceAssert.isOk(flag, "add warehouseStock failed");
+        //更新sku status
+        if (skuInfo.getStatus() == SkuStatusEnum.unuse.getV()) {
+            SkuInfo skuUpt = new SkuInfo();
+            skuUpt.setSkuId(t.getSkuId());
+            skuUpt.setStatus(SkuStatusEnum.used.getV());
+            skuUpt.setLastModifiedTime(DateUtils.getCurrentDate());
+            this.skuInfoService.updateById(skuUpt);
+        }
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -74,7 +86,7 @@ public class WarehouseStockManager {
         queryWrapper.eq(GoodsSaleInfo.SKU_ID, skuId);
         queryWrapper.gt(GoodsSaleInfo.STATUS, SaleGoodsStatusEnum.INVALID.getV());
         List<GoodsSaleInfo> goodsSaleInfos = this.goodsSaleInfoService.list(queryWrapper);
-        Assert.isTrue(CollectionUtils.isEmpty(goodsSaleInfos), "已添加售卖商品, 拒绝删除");
+        Assert.isTrue(CollectionUtils.isEmpty(goodsSaleInfos), "已添加售卖商品, 无法删除");
         this.warehouseStockService.removeById(t.getId());
     }
 
@@ -83,7 +95,7 @@ public class WarehouseStockManager {
         WarehouseStock t = warehouseStockValidator.validate(warehouseCode, skuId);
         //update
         UpdateWrapper<WarehouseStock> updateWrapper = new UpdateWrapper<>();
-        Assert.isTrue(num != null || costPrice != null, "param not enough");
+        Assert.isTrue(num != null || costPrice != null, "not found necessary param");
         if (costPrice != null) {
             updateWrapper.set(WarehouseStock.COST_PRICE, costPrice);
         }

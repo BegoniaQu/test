@@ -14,7 +14,7 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author Quy
- * @since 2019-11-27
+ * @since 2020-04-09
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -37,11 +37,6 @@ public class UserShippingInfo implements Serializable {
     private String contact;
 
     /**
-     * 1-男 2-女
-     */
-    private Integer gender;
-
-    /**
      * 联系手机
      */
     private String mobile;
@@ -62,9 +57,24 @@ public class UserShippingInfo implements Serializable {
     private String locationY;
 
     /**
+     * 地址类型：1-家 2-公司，3-其他
+     */
+    private Integer addrType;
+
+    /**
+     * 是否是默认地址 1-是 0-否
+     */
+    private Integer defaultAddr;
+
+    /**
      * 创建时间
      */
     private LocalDateTime createTime;
+
+    /**
+     * 最后修改时间
+     */
+    private LocalDateTime lastModifiedTime;
 
 
     public static final String ID = "id";
@@ -72,8 +82,6 @@ public class UserShippingInfo implements Serializable {
     public static final String USER_ID = "user_id";
 
     public static final String CONTACT = "contact";
-
-    public static final String GENDER = "gender";
 
     public static final String MOBILE = "mobile";
 
@@ -83,6 +91,12 @@ public class UserShippingInfo implements Serializable {
 
     public static final String LOCATION_Y = "location_y";
 
+    public static final String ADDR_TYPE = "addr_type";
+
+    public static final String DEFAULT_ADDR = "default_addr";
+
     public static final String CREATE_TIME = "create_time";
+
+    public static final String LAST_MODIFIED_TIME = "last_modified_time";
 
 }

@@ -55,7 +55,7 @@ public class WxRequester {
         if (Objects.isNull(str)) {
             throw new SCApiRuntimeException();
         }
-        System.out.println(str);
+        //System.out.println(str);
         WxAuthInfo wxAuthInfo = JsonUtil.getObjectFromJson(str, WxAuthInfo.class);
         if (wxAuthInfo == null || StringUtils.isEmpty(wxAuthInfo.getOpenid())) {
             throw new SCApiRuntimeException("illegal operation");

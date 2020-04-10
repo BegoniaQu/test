@@ -22,10 +22,10 @@ public class SaleGoodsValidator implements Validator {
     }
 
     public GoodsSaleInfo validate(String goodsId) {
-        Assert.hasText(goodsId, getErrorMsg("null(goodsId) found"));
+        Assert.hasText(goodsId, nullMsg("goodsId"));
         GoodsSaleInfo goods = goodsSaleInfoService.getById(goodsId);
-        Assert.notNull(goods, getErrorMsg("unknown(goodsId)"));
-        Assert.isTrue(goods.getStatus() != SaleGoodsStatusEnum.INVALID.getV(), getErrorMsg("invalid(goodsId)"));
+        Assert.notNull(goods, unknownMsg("goodsId"));
+        Assert.isTrue(goods.getStatus() != SaleGoodsStatusEnum.INVALID.getV(), invalidMsg("goodsId"));
         return goods;
     }
 

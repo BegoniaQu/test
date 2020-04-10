@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author Quy
- * @since 2019-11-22
+ * @since 2020-04-09
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -59,14 +59,14 @@ public class UserOrder implements Serializable {
     private String receiver;
 
     /**
-     * 性别
-     */
-    private String gender;
-
-    /**
      * 收货人联系电话
      */
     private String mobile;
+
+    /**
+     * 送货地址
+     */
+    private String address;
 
     /**
      * 购买商品总数量
@@ -84,19 +84,19 @@ public class UserOrder implements Serializable {
     private String comment;
 
     /**
-     * 送货地址
-     */
-    private String address;
-
-    /**
      * 配送日期
      */
     private LocalDate deliveryDate;
 
     /**
-     * 默认60分钟内，送达，vip用户则30分钟内送达
+     * 配送开始时间点
      */
-    private Integer deliveryTime;
+    private String deliveryStartTime;
+
+    /**
+     * 配送结束时间点
+     */
+    private String deliveryEndTime;
 
     /**
      * 配送费
@@ -104,7 +104,7 @@ public class UserOrder implements Serializable {
     private BigDecimal deliveryFee;
 
     /**
-     * 应付金额
+     * 总金额
      */
     private BigDecimal amount;
 
@@ -112,6 +112,11 @@ public class UserOrder implements Serializable {
      * 优惠券金额
      */
     private BigDecimal couponAmt;
+
+    /**
+     * 应付金额
+     */
+    private BigDecimal realAmt;
 
     /**
      * 实付金额,在收到支付回调后更新
@@ -124,19 +129,9 @@ public class UserOrder implements Serializable {
     private Integer payWay;
 
     /**
-     * 配送人员
+     * 配送人员Id
      */
-    private String deliveryman;
-
-    /**
-     * 配送人员电话
-     */
-    private String deliverymanTel;
-
-    /**
-     * 配送员头像
-     */
-    private String deliverymanPic;
+    private Long dmId;
 
     /**
      * 订单创建时间
@@ -178,9 +173,9 @@ public class UserOrder implements Serializable {
 
     public static final String RECEIVER = "receiver";
 
-    public static final String GENDER = "gender";
-
     public static final String MOBILE = "mobile";
+
+    public static final String ADDRESS = "address";
 
     public static final String GOODS_NUM = "goods_num";
 
@@ -188,11 +183,11 @@ public class UserOrder implements Serializable {
 
     public static final String COMMENT = "comment";
 
-    public static final String ADDRESS = "address";
-
     public static final String DELIVERY_DATE = "delivery_date";
 
-    public static final String DELIVERY_TIME = "delivery_time";
+    public static final String DELIVERY_START_TIME = "delivery_start_time";
+
+    public static final String DELIVERY_END_TIME = "delivery_end_time";
 
     public static final String DELIVERY_FEE = "delivery_fee";
 
@@ -200,15 +195,13 @@ public class UserOrder implements Serializable {
 
     public static final String COUPON_AMT = "coupon_amt";
 
+    public static final String REAL_AMT = "real_amt";
+
     public static final String REAL_PAY = "real_pay";
 
     public static final String PAY_WAY = "pay_way";
 
-    public static final String DELIVERYMAN = "deliveryman";
-
-    public static final String DELIVERYMAN_TEL = "deliveryman_tel";
-
-    public static final String DELIVERYMAN_PIC = "deliveryman_pic";
+    public static final String DM_ID = "dm_id";
 
     public static final String ORDER_CREATE_TIME = "order_create_time";
 

@@ -1,4 +1,4 @@
-package com.yc.fresh.api.rest.inner.builder;
+package com.yc.fresh.api.builder;
 
 /**
  * Created by quy on 2019/12/2.

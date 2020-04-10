@@ -1,20 +1,18 @@
 package com.yc.fresh.api.rest.outer;
 
 import com.yc.fresh.api.conf.AppConfig;
-import com.yc.fresh.api.rest.inner.builder.LockNameBuilder;
+import com.yc.fresh.api.builder.LockNameBuilder;
 import com.yc.fresh.api.rest.outer.convertor.CustomerConvertor;
 import com.yc.fresh.api.rest.outer.req.bean.RegisterReqBean;
 import com.yc.fresh.api.rest.outer.resp.bean.AuthenRespBean;
 import com.yc.fresh.api.rest.outer.resp.bean.RegisterRespBean;
 import com.yc.fresh.busi.CustomerManager;
 import com.yc.fresh.busi.enums.LoginEnum;
-import com.yc.fresh.busi.validator.CustomerValidator;
 import com.yc.fresh.common.cache.lock.impl.LockProxy;
 import com.yc.fresh.common.exception.SCApiRuntimeException;
 import com.yc.fresh.common.lock.DistributedLock;
 import com.yc.fresh.common.tp.WxRequester;
 import com.yc.fresh.common.tp.bean.WxAuthInfo;
-import com.yc.fresh.common.utils.DateUtils;
 import com.yc.fresh.service.entity.UserInfo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -51,14 +49,14 @@ public class WxCustomerApi {
     }
 
     @PostMapping("/reg")
-    @ApiOperation(value="注册用户", produces=APPLICATION_JSON_VALUE, httpMethod = "POST")
+    @ApiOperation(value="注册", produces=APPLICATION_JSON_VALUE, httpMethod = "POST")
     public RegisterRespBean register(@Valid @RequestBody RegisterReqBean reqBean, HttpServletRequest request) {
         String openid = (String)request.getAttribute("openid");
         String lockName = LockNameBuilder.buildOpenid(openid);
         LockProxy lock = distributedLock.lock(lockName);
         if (lock == null) { throw new SCApiRuntimeException(); }
         UserInfo t = customerManager.get(openid);
-        Assert.isTrue(t == null, "呵呵哒");
+        Assert.isTrue(t == null, "duplicated registration"); //是否注册过
         t = CustomerConvertor.convert2Entity(reqBean, openid);
         customerManager.doRegister(t);
         RegisterRespBean respBean = CustomerConvertor.convert2Bean(t.getUserId());

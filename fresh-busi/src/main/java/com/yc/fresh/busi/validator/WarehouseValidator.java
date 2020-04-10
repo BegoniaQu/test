@@ -25,12 +25,12 @@ public class WarehouseValidator implements Validator{
 
 
     public Warehouse validateWarehouseCode(String warehouseCode) {
-        Assert.hasText(warehouseCode, getErrorMsg("null(warehouseCode) found"));
+        Assert.hasText(warehouseCode, nullMsg("warehouseCode"));
         QueryWrapper<Warehouse> qryWrapper = new QueryWrapper<>();
         qryWrapper.eq(Warehouse.CODE, warehouseCode);
         Warehouse one = this.warehouseService.getOne(qryWrapper);
-        Assert.notNull(one, getErrorMsg("unknown(warehouseCode)"));
-        Assert.isTrue(one.getStatus() == WarehouseStatusEnum.AVAILABLE.getV(), getErrorMsg("invalid(warehouseCode)"));
+        Assert.notNull(one, unknownMsg("warehouseCode"));
+        Assert.isTrue(one.getStatus() == WarehouseStatusEnum.AVAILABLE.getV(), invalidMsg("warehouseCode"));
         return one;
     }
 }
