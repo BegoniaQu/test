@@ -25,5 +25,11 @@
             <artifactId>freemarker</artifactId>
             <version>2.3.28</version>
         </dependency>
+        <dependency>
+            <groupId>com.yc.fresh</groupId>
+            <artifactId>fresh-common</artifactId>
+            <version>1.0.0</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 </project>

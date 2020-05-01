@@ -9,18 +9,11 @@ public class Page {
     protected Integer ps = 10;
     protected Integer pn = 1;
 
-
-    public static final int maxSize = 2000;
-
-
     public Integer getPs() {
         return ps;
     }
 
     public void setPs(Integer ps) {
-        if (ps >= maxSize) {
-            ps = maxSize;
-        }
         this.ps = ps;
     }
 

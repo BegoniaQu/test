@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Api(description = "订单服务")
 @RestController
-@RequestMapping("rest/outer/v1/order")
+@RequestMapping("rest/outer/a/o")
 public class OrderApi {
 
     private final IUserOrderService userOrderService;

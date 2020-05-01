@@ -25,7 +25,8 @@ public class CustomerConvertor {
             respBean.setLogin(LoginEnum.unregistered.getT());
             respBean.setSpot(KeyUtils.encrypt(openid)); //在注册时传递给后端
         } else {
-            respBean.setTk(KeyUtils.createToken(userInfo.getUserId()));
+            //respBean.setTk(KeyUtils.createToken(userInfo.getUserId()));
+            respBean.setTk(userInfo.getTk());
             respBean.setLogin(LoginEnum.registered.getT());
         }
         return respBean;

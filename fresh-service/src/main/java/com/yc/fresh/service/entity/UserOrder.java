@@ -6,6 +6,8 @@ import java.time.LocalDate;
 import com.baomidou.mybatisplus.annotation.TableId;
 import java.time.LocalDateTime;
 import java.io.Serializable;
+
+import com.yc.fresh.common.cache.annotation.CacheId;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -41,6 +43,7 @@ public class UserOrder implements Serializable {
     /**
      * 订单号
      */
+    @CacheId
     private String orderId;
 
     /**

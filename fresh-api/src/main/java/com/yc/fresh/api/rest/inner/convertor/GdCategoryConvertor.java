@@ -23,7 +23,7 @@ public class GdCategoryConvertor {
     public static GdCategory convert2Entity(GdCategoryAddReqBean reqBean) {
         GdCategory gdCategory = new GdCategory();
         gdCategory.setName(reqBean.getName());
-        gdCategory.setParentId(reqBean.getParentId());
+        gdCategory.setParentId(reqBean.getParentId()== null ? 0 : reqBean.getParentId());
         gdCategory.setStatus(GdCategoryStatusEnum.AVAILABLE.getV());
         gdCategory.setSort(reqBean.getSort());
         gdCategory.setPicPath(reqBean.getPicPath());
@@ -34,7 +34,7 @@ public class GdCategoryConvertor {
         GdCategory gdCategory = new GdCategory();
         gdCategory.setId(reqBean.getId());
         gdCategory.setName(reqBean.getName());
-        gdCategory.setParentId(reqBean.getParentId());
+        gdCategory.setParentId(reqBean.getParentId() == null ? 0 : reqBean.getParentId());
         gdCategory.setSort(reqBean.getSort());
         gdCategory.setPicPath(reqBean.getPicPath());
         return gdCategory;

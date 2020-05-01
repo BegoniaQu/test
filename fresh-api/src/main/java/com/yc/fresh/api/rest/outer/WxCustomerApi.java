@@ -6,8 +6,7 @@ import com.yc.fresh.api.rest.outer.convertor.CustomerConvertor;
 import com.yc.fresh.api.rest.outer.req.bean.RegisterReqBean;
 import com.yc.fresh.api.rest.outer.resp.bean.AuthenRespBean;
 import com.yc.fresh.api.rest.outer.resp.bean.RegisterRespBean;
-import com.yc.fresh.busi.CustomerManager;
-import com.yc.fresh.busi.enums.LoginEnum;
+import com.yc.fresh.busi.outer.CustomerManager;
 import com.yc.fresh.common.cache.lock.impl.LockProxy;
 import com.yc.fresh.common.exception.SCApiRuntimeException;
 import com.yc.fresh.common.lock.DistributedLock;
@@ -49,7 +48,7 @@ public class WxCustomerApi {
     }
 
     @PostMapping("/reg")
-    @ApiOperation(value="注册", produces=APPLICATION_JSON_VALUE, httpMethod = "POST")
+    @ApiOperation(value="注册", produces=APPLICATION_JSON_VALUE, response = RegisterRespBean.class, httpMethod = "POST")
     public RegisterRespBean register(@Valid @RequestBody RegisterReqBean reqBean, HttpServletRequest request) {
         String openid = (String)request.getAttribute("openid");
         String lockName = LockNameBuilder.buildOpenid(openid);
@@ -66,16 +65,18 @@ public class WxCustomerApi {
     }
 
     @GetMapping("/auth")
-    @ApiOperation(value="授权查询", produces=APPLICATION_JSON_VALUE, httpMethod = "GET")
+    @ApiOperation(value="授权查询", produces=APPLICATION_JSON_VALUE, response = AuthenRespBean.class, httpMethod = "GET")
     public AuthenRespBean authenticate(@ApiParam("小程序code") @RequestParam String code) {
         Map<String, String> paramMap = WxRequester.wrapAuthParam(appConfig.getWxAppid(), appConfig.getWxAppSecret(), code);
         WxAuthInfo wxAuthInfo = WxRequester.get(appConfig.getWxUrl(), paramMap);
         String openid = wxAuthInfo.getOpenid();
         UserInfo userInfo = this.customerManager.get(openid);
         AuthenRespBean respBean = CustomerConvertor.convert2Bean(userInfo, openid);
-        if (respBean.getLogin() == LoginEnum.registered.getT()) { //已注册过
-            this.customerManager.updateTk(userInfo.getUserId(), respBean.getTk());
-        }
+        /*if (respBean.getLogin() == LoginEnum.registered.getT()) { //已注册过
+            if (userInfo.getTkExpiredTime().isBefore(DateUtils.getCurrentDate())) {
+                this.customerManager.updateTk(userInfo.getUserId(), respBean.getTk());
+            }
+        }*/
         return respBean;
     }
 

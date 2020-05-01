@@ -1,6 +1,6 @@
 package com.yc.fresh.api.component;
 
-import com.yc.fresh.busi.CustomerManager;
+import com.yc.fresh.busi.outer.CustomerManager;
 import com.yc.fresh.busi.enums.PersonStatusEnum;
 import com.yc.fresh.common.exception.SCTokenExpiredRuntimeException;
 import com.yc.fresh.common.exception.SCUnAuthorizedRuntimeException;
@@ -39,8 +39,8 @@ public class UserVerifier {
         if(userInfo.getStatus() == PersonStatusEnum.close.getV()){
             throw new SCUnAuthorizedRuntimeException("您的账号已被封禁,如有疑问,请联系客服");
         }
-        if(!token.equals(userInfo.getTk())){//不是最新的token
-            throw new SCTokenExpiredRuntimeException("illegal operation");
+        if(!token.equals(userInfo.getTk())){//token不对
+            throw new SCTokenExpiredRuntimeException("request forbidden");
         }
         /*Date tkExpiredTime = userInfo.getTkExpiredTime();
         if(tkExpiredTime.before(new Date())){ //过期了

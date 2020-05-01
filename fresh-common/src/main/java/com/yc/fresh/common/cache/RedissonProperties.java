@@ -14,7 +14,7 @@ public class RedissonProperties {
     private String pwd;
     private int subscriptionConnectionPoolSize = 8;
     private int connectionMinimumIdleSize = 4;
-    private int connectionPoolSize = 12;
+    private int connectionPoolSize = 16;
 
 
     public String getClientName() {
