@@ -36,7 +36,7 @@ import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
  */
 @RestController
 @RequestMapping("/rest/inner/stock")
-@Api(description = "仓库库存管理")
+@Api(tags = "Admin-仓库库存管理")
 public class WarehouseStockController {
 
     private final WarehouseStockManager warehouseStockManager;

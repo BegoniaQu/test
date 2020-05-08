@@ -3,7 +3,6 @@ package com.yc.fresh.busi;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.yc.fresh.busi.cache.GdCategoryCacheService;
-import com.yc.fresh.busi.cache.key.RedisKeyUtils;
 import com.yc.fresh.busi.validator.GdCategoryValidator;
 import com.yc.fresh.common.ServiceAssert;
 import com.yc.fresh.service.IGdCategoryService;
@@ -46,19 +45,21 @@ public class GdCategoryManager {
         }
         boolean isOk = this.gdCategoryService.save(t);
         ServiceAssert.isOk(isOk, "add category failed");
-        this.gdCategoryCacheService.listAdd(t);
+        this.gdCategoryCacheService.add(t);
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void doUpdate(GdCategory t) {
-        GdCategory dbOne = this.gdCategoryValidator.validateId(t.getId());
-        Integer parentId = t.getParentId();
+        GdCategory gdCategory = this.gdCategoryValidator.validateId(t.getId());
+        /*Integer parentId = t.getParentId();
         if (parentId > 0) {
             gdCategoryValidator.validateId(parentId);
-        }
+        }*/
         boolean isOk = this.gdCategoryService.updateById(t);
         ServiceAssert.isOk(isOk, "update category failed");
-        this.gdCategoryCacheService.listDel(t, dbOne.getParentId());
+        t.setParentId(gdCategory.getParentId());
+        t.setStatus(gdCategory.getStatus());
+        this.gdCategoryCacheService.update(t);
     }
 
 
@@ -71,7 +72,7 @@ public class GdCategoryManager {
         wrapper.eq(GdCategory.STATUS, GdCategoryStatusEnum.AVAILABLE.getV());
         boolean isOk = this.gdCategoryService.update(wrapper);
         ServiceAssert.isOk(isOk, "del category failed");
-        this.gdCategoryCacheService.listDel(dbOne.getParentId());
+        this.gdCategoryCacheService.del(dbOne);
     }
 
     public List<GdCategory> query(Integer parentId, Integer status) {

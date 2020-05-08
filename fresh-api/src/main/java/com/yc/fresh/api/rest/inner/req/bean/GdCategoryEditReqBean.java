@@ -32,8 +32,8 @@ public class GdCategoryEditReqBean {
     @NotNull
     private Integer sort;
 
-    @ApiModelProperty(value = "所属父类ID,本身就是一级分类时请忽略此字段")
-    private Integer parentId;
+   /* @ApiModelProperty(value = "所属父类ID,本身就是一级分类时请忽略此字段")
+    private Integer parentId;*/ //考虑到缓存的复杂性,编辑时不能改父分类,可直接废弃分类
 
     @ApiModelProperty(value = "图片路径(相对路径)", required = true)
     @NotBlank

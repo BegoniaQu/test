@@ -34,7 +34,7 @@ public class GdCategoryConvertor {
         GdCategory gdCategory = new GdCategory();
         gdCategory.setId(reqBean.getId());
         gdCategory.setName(reqBean.getName());
-        gdCategory.setParentId(reqBean.getParentId() == null ? 0 : reqBean.getParentId());
+        //gdCategory.setParentId(reqBean.getParentId() == null ? 0 : reqBean.getParentId());
         gdCategory.setSort(reqBean.getSort());
         gdCategory.setPicPath(reqBean.getPicPath());
         return gdCategory;

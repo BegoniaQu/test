@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.yc.fresh.busi.cache.SaleGoodsCacheService;
+import com.yc.fresh.busi.cache.SaleGoodsPicCacheService;
 import com.yc.fresh.busi.validator.SaleGoodsValidator;
 import com.yc.fresh.busi.validator.WarehouseStockValidator;
 import com.yc.fresh.common.ServiceAssert;
@@ -37,14 +39,18 @@ public class SaleGoodsManager {
     private final IGoodsSalePicService goodsSalePicService;
     private final WarehouseStockValidator warehouseStockValidator;
     private final SaleGoodsValidator saleGoodsValidator;
+    private final SaleGoodsCacheService saleGoodsCacheService;
+    private final SaleGoodsPicCacheService saleGoodsPicCacheService;
 
     @Autowired
-    public SaleGoodsManager(IGoodsSaleInfoService goodsSaleInfoService, WarehouseStockValidator warehouseStockValidator, ISkuInfoService skuInfoService, IGoodsSalePicService goodsSalePicService, SaleGoodsValidator saleGoodsValidator) {
+    public SaleGoodsManager(IGoodsSaleInfoService goodsSaleInfoService, WarehouseStockValidator warehouseStockValidator, ISkuInfoService skuInfoService, IGoodsSalePicService goodsSalePicService, SaleGoodsValidator saleGoodsValidator, SaleGoodsCacheService saleGoodsCacheService, SaleGoodsPicCacheService saleGoodsPicCacheService) {
         this.goodsSaleInfoService = goodsSaleInfoService;
         this.warehouseStockValidator = warehouseStockValidator;
         this.skuInfoService = skuInfoService;
         this.goodsSalePicService = goodsSalePicService;
         this.saleGoodsValidator = saleGoodsValidator;
+        this.saleGoodsCacheService = saleGoodsCacheService;
+        this.saleGoodsPicCacheService = saleGoodsPicCacheService;
     }
 
 
@@ -79,7 +85,22 @@ public class SaleGoodsManager {
         }
         boolean flag = this.goodsSaleInfoService.update(wrapper);
         ServiceAssert.isOk(flag, "take on or take off failed");
+        if (newStatus == SaleGoodsStatusEnum.SALEABLE.getV()) { //上架
+            WarehouseStock stock = warehouseStockValidator.validate(goods.getWarehouseCode(), goods.getSkuId());
+            goods.setInventory(getRealNum(stock.getNum(), goods)); //TODO 后续可能会从saleableNum获取
+            goods.setStatus(newStatus);//本次状态要带上
+            this.saleGoodsCacheService.cache(goods);
+        } else if (newStatus == SaleGoodsStatusEnum.UNSALEABLE.getV()) {//下架
+           this.saleGoodsCacheService.unCache(goods);
+        }
     }
+
+    private int getRealNum(int stockNum, GoodsSaleInfo goods) {
+        int unitOcuppyNum = goods.getBundles()*goods.getSaleCv();
+        return stockNum/unitOcuppyNum;
+    }
+
+
 
     @Transactional(readOnly = true)
     public GoodsSaleInfo doGet(String goodsId) {
@@ -143,6 +164,9 @@ public class SaleGoodsManager {
     @Transactional(rollbackFor = Exception.class)
     public void doAdd(List<GoodsSalePic> pics) {
         goodsSalePicService.saveBatch(pics);
+        //cache
+        String goodsId = pics.get(0).getGoodsId();
+        saleGoodsPicCacheService.cache(goodsId, pics);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -151,6 +175,8 @@ public class SaleGoodsManager {
         wrapper.eq(GoodsSalePic.GOODS_ID, goodsId);
         goodsSalePicService.remove(wrapper);
         goodsSalePicService.saveBatch(pics);
+        //upt cache
+        saleGoodsPicCacheService.reCache(goodsId, pics);
     }
 
     public List<GoodsSalePic> findPic(String goodsId) {

@@ -33,7 +33,7 @@ import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
  */
 @RestController
 @RequestMapping("/rest/outer/wx/c")
-@Api(description = "小程序顾客服务")
+@Api(tags = "Open-小程序顾客服务")
 public class WxCustomerApi {
 
     private final CustomerManager customerManager;

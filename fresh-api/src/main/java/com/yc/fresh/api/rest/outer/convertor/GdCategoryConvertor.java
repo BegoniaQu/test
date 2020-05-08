@@ -2,8 +2,10 @@ package com.yc.fresh.api.rest.outer.convertor;
 
 import com.yc.fresh.api.rest.outer.resp.bean.GdCategoryRespVO;
 import com.yc.fresh.service.entity.GdCategory;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -14,6 +16,9 @@ import java.util.List;
 public class GdCategoryConvertor {
 
     public static List<GdCategoryRespVO> convert2List(List<GdCategory> list) {
+        if (CollectionUtils.isEmpty(list)) {
+            return Collections.emptyList();
+        }
         list.sort(Comparator.comparing(GdCategory::getSort));
         List<GdCategoryRespVO> vos = new ArrayList<>();
         for (GdCategory f : list) {

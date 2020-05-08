@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
  * Created by quy on 2019/11/18.
  * Motto: you can do it
  */
-@Api(description = "订单服务")
+@Api(tags = "Open-订单")
 @RestController
 @RequestMapping("rest/outer/a/o")
 public class OrderApi {

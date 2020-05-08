@@ -16,18 +16,14 @@ import javax.validation.constraints.NotNull;
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class SaleGoodsPageQryBean extends Page {
+public class SaleGoodsPageQryBean {
 
     @ApiParam(value = "仓库编码", required = true)
     @NotBlank
-    private String warehouseCode;
+    private String wsCode;
 
     @ApiParam(value = "一级分类ID", required = true)
     @NotNull
-    private Integer fId;
-
-    @ApiParam("二级分类ID")
-    private Integer sId;
-
+    private Integer fcId;
 
 }

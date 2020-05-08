@@ -28,7 +28,7 @@ import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
  */
 @RestController
 @RequestMapping("/rest/inner/category")
-@Api(description = "分类管理")
+@Api(tags = "Admin-分类管理")
 public class GdCategoryController {
 
     private final GdCategoryManager gdCategoryManager;
@@ -45,6 +45,7 @@ public class GdCategoryController {
         GdCategory t = GdCategoryConvertor.convert2Entity(reqBean);
         gdCategoryManager.doAdd(t);
     }
+
 
     @PostMapping(value = "/edit")
     @ApiOperation(value="编辑分类", produces=APPLICATION_JSON_VALUE, httpMethod = "POST")
@@ -69,9 +70,9 @@ public class GdCategoryController {
     }
 
     @GetMapping("/first/list")
-    @ApiOperation(value="查询一级分类列表", produces=APPLICATION_JSON_VALUE, responseContainer = "List", response = GdCategoryRespBean.class, httpMethod = "GET")
-    public List<GdCategoryRespBean> findFirst() {
-        List<GdCategory> gdCategories = this.gdCategoryManager.query(0, GdCategoryStatusEnum.AVAILABLE.getV());
+    @ApiOperation(value="查询分类列表", produces=APPLICATION_JSON_VALUE, responseContainer = "List", response = GdCategoryRespBean.class, httpMethod = "GET")
+    public List<GdCategoryRespBean> findFirst(@ApiParam("父分类ID") @RequestParam(required = false) Integer parentId) {
+        List<GdCategory> gdCategories = this.gdCategoryManager.query(parentId == null ? 0 : parentId, GdCategoryStatusEnum.AVAILABLE.getV());
         return GdCategoryConvertor.convert2BeanList(gdCategories);
     }
 }

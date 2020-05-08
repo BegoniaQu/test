@@ -39,7 +39,7 @@ import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 @RestController
 @RequestMapping("/rest/inner/sku")
-@Api(description = "sku管理")
+@Api(tags = "Admin-SKU管理")
 public class SkuController {
 
     private final SkuManager skuManager;

@@ -41,7 +41,7 @@ import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
  */
 @RestController
 @RequestMapping("/rest/inner/goods")
-@Api(description = "售卖商品管理")
+@Api(tags = "Admin-售卖商品管理")
 public class GoodsSaleController {
 
     private final SaleGoodsManager saleGoodsManager;

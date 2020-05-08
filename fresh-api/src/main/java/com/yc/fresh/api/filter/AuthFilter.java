@@ -34,6 +34,9 @@ public class AuthFilter extends AbstractFilter implements Ordered {
         nonAuthKws.add("/outer/wx/c/auth");//微信小程序用户登录时专用
         nonAuthKws.add("swagger"); //swagger
         nonAuthKws.add("v2/api-docs");//swagger
+        nonAuthKws.add("/doc.html");//swagger
+        nonAuthKws.add("/favicon.ico");//swagger
+        nonAuthKws.add("/service-worker");//swagger
     }
 
     private boolean isFreeVisit(String uri) {

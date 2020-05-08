@@ -5,9 +5,7 @@ import org.redisson.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -42,22 +40,6 @@ public class RedissonTemplate {
     }
 
 
-    /**
-     * if keys is expired, will return null
-     * @param key
-     * @return
-     */
-    public String getStr(String key){
-        try {
-            RBucket<String> rBucket = redissonClient.getBucket(key);
-            return rBucket.get();
-        } catch (Exception e) {
-            log.error("redisson: getStr error",e);
-        }
-        return null;
-    }
-
-
     public Integer getInteger(String key){
         try {
             RBucket<Integer> rBucket = redissonClient.getBucket(key);
@@ -82,6 +64,33 @@ public class RedissonTemplate {
         return null;
     }
 
+    public <T> boolean delEntity(String key){
+        boolean flag = true;
+        try {
+            RBucket<T> rBucket = redissonClient.getBucket(key);
+            rBucket.delete();
+        } catch (Exception e) {
+            flag = false;
+            log.error("redisson: delEntity error",e);
+        }
+        return flag;
+    }
+
+
+    public <T> List<T> getEntitys(List<String> keys) {
+        List<T> list = new ArrayList<>();
+        try {
+            RBuckets buckets = redissonClient.getBuckets();
+            Map<String, T> map = buckets.get(keys.toArray(new String[0]));
+            for (Map.Entry<String, T> stringTEntry : map.entrySet()) {
+                list.add(stringTEntry.getValue());
+            }
+        } catch (Exception e) {
+            log.error("redisson: getEntitys error",e);
+        }
+        return list;
+    }
+
     public <T> T getEntity(String key) {
         try {
             RBucket<T> rBucket = redissonClient.getBucket(key);
@@ -93,18 +102,6 @@ public class RedissonTemplate {
     }
 
 
-    public <T> void addList(String key, List<T> list, Long second){
-        try{
-            RList<T> rList = redissonClient.getList(key);
-            rList.clear();
-            rList.addAll(list);
-            if(second != null){
-                rList.expire(second, TimeUnit.SECONDS);
-            }
-        } catch (Exception e) {
-            log.error("redisson: addList error",e);
-        }
-    }
 
     public <T> boolean appendList(String key, T t, Long second){
         boolean flag = true;
@@ -131,32 +128,114 @@ public class RedissonTemplate {
         return null;
     }
 
-
-    public <T> boolean delEntity(String key){
+    public <T> boolean addList(String key, List<T> list, Long second){
         boolean flag = true;
-        try {
-            RBucket<T> rBucket = redissonClient.getBucket(key);
-            rBucket.delete();
+        try{
+            RList<T> rList = redissonClient.getList(key);
+            rList.addAll(list);
+            if(second != null){
+                rList.expire(second, TimeUnit.SECONDS);
+            }
         } catch (Exception e) {
             flag = false;
-            log.error("redisson: delEntity error",e);
+            log.error("redisson: addList error",e);
         }
         return flag;
     }
 
-    public <T> boolean delList(String key) {
+
+    public boolean cleanList(String key) {
         boolean flag = true;
         try {
-            RList<T> rList = redissonClient.getList(key);
+            RList rList = redissonClient.getList(key);
             rList.delete();
         }catch (Exception e) {
             flag = false;
-            log.error("redisson: delList error", e);
+            log.error("redisson: cleanList error", e);
+        }
+        return flag;
+    }
+
+    public boolean rmvList(String key, Object o) {
+        boolean flag = true;
+        try {
+            RList rList = redissonClient.getList(key);
+            rList.remove(o);
+        }catch (Exception e) {
+            flag = false;
+            log.error("redisson: rmvList error", e);
         }
         return flag;
     }
 
 
+
+    public  <T> boolean mapAdd(String key, String id, T t, Long second) {
+        boolean flag = true;
+        try {
+            RMap<String, T> map = redissonClient.getMap(key);
+            map.fastPut(id, t);
+            if(second != null){
+                map.expire(second, TimeUnit.SECONDS);
+            }
+        } catch (Exception e) {
+            flag = false;
+            log.error("redisson: mapAdd error", e);
+        }
+        return flag;
+    }
+
+    public  <T> boolean mapUpt(String key, String id, T t) {
+        boolean flag = true;
+        try {
+            RMap<String, T> map = redissonClient.getMap(key);
+            map.fastPut(id, t);
+        } catch (Exception e) {
+            flag = false;
+            log.error("redisson: mapUpt error", e);
+        }
+        return flag;
+
+    }
+
+    public boolean mapRmv(String key, String... id) {
+        boolean flag = true;
+        try {
+            RMap<String, Object> map = redissonClient.getMap(key);
+            map.fastRemove(id);
+        } catch (Exception e) {
+            flag = false;
+            log.error("redisson: mapRmv error", e);
+        }
+        return flag;
+    }
+
+    public boolean mapClean(String key) {
+        boolean flag = true;
+        try {
+            RMap<String, Object> map = redissonClient.getMap(key);
+            map.delete();
+        } catch (Exception e) {
+            flag = false;
+            log.error("redisson: mapClean error", e);
+        }
+        return flag;
+    }
+
+    public <T> List<T> findFromMap(String key, int batchSize) {
+        try {
+            List<T> list = new ArrayList<>();
+            RMap<String, T> map = redissonClient.getMap(key);
+            //Collection<T> values = map.values(batchSize);
+            for (Map.Entry<String, T> stringTEntry : map.entrySet(batchSize)) {
+                list.add(stringTEntry.getValue());
+            }
+            return list;
+        } catch (Exception e) {
+            log.error("redisson: findFromMap error",e);
+        }
+        return Collections.emptyList();
+    }
 
     /**
      *

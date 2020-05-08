@@ -26,7 +26,7 @@ import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
  */
 @RestController
 @RequestMapping("/rest/inner/dm")
-@Api(description = "配送人员管理")
+@Api(tags = "Admin-配送人员管理")
 public class DeliverymanController {
 
 

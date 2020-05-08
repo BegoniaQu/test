@@ -14,13 +14,15 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 /**
  * Created by quy on 2020/4/20.
  * Motto: you can do it
  */
-public abstract class AbstractCacheServiceImpl<T> implements ICacheService<T> {
+public abstract class AbstractCacheServiceImpl<T,S extends Serializable> implements ICacheService<T,S> {
 
     protected Class<T> entityClass;
     protected String keyPrefix;
@@ -72,34 +74,43 @@ public abstract class AbstractCacheServiceImpl<T> implements ICacheService<T> {
             this.entityClass = (Class<T>) p[0];
         }
         Assert.notNull(entityClass, "you must tell the correct ParameterizedType");
-        keyPrefix = entityClass.getName().toLowerCase() + ":";
-        System.out.println("-------------" + keyPrefix);
+        keyPrefix = entityClass.getSimpleName().toLowerCase() + ":";
+        //System.out.println("-------------" + keyPrefix);
         parseEntityClass(entityClass);
         this.redissonTemplate = redissonTemplate;
         this.dbService = dbService;
     }
 
     private int getANumber() {
-        return new Random().nextInt(30);
+        return new Random().nextInt(100);
     }
 
 
 
     @Override
-    public void add(T t) {
-        Object v;
-        try {
-            v = idField.get(t);
-        } catch (IllegalAccessException e) {
-            throw new SCRedisRuntimeException(e);
-        }
-        String key = keyPrefix + String.valueOf(v);
-        boolean result = redissonTemplate.set(key, t, defaultLiveSecond);
+    public void add(T t, long second) {
+        String id = getId(t);
+        String key = keyPrefix + id;
+        boolean result = redissonTemplate.set(key, t, second > 0 ? second : null);
         CacheAssert.isOk(result);
     }
 
+    public void add(T t) {
+        add(t, 0);
+    }
+
+    private String getId(T t) {
+        try {
+            idField.setAccessible(true);
+            Object v = idField.get(t);
+            return String.valueOf(v);
+        } catch (IllegalAccessException e) {
+            throw new SCRedisRuntimeException(e);
+        }
+    }
+
     @Override
-    public T getByPid(Serializable id) {
+    public T getByPid(S id) {
         Nil nil = new Nil();
         String key = keyPrefix + id;
         T t = redissonTemplate.getEntity(key, nil);
@@ -119,25 +130,96 @@ public abstract class AbstractCacheServiceImpl<T> implements ICacheService<T> {
     }
 
     @Override
-    public void removeByPid(Serializable id) {
+    public void removeByPid(S id) {
         String key = keyPrefix + id;
         boolean result = redissonTemplate.delEntity(key);
         CacheAssert.isOk(result);
     }
 
+    @Override
+    public List<T> findT(List<S> ids) {
+        List<String> keys = ids.stream().map(t-> keyPrefix + t).collect(Collectors.toList());
+        return this.redissonTemplate.getEntitys(keys);
+    }
 
+
+    //--------------------list-------------------
 
     @Override
-    public void listAdd(String key, T t) {
-        boolean result = this.redissonTemplate.appendList(key, t, defaultLiveSecond);
+    public void listAdd(String key, S id, long second) {
+        boolean result = this.redissonTemplate.appendList(key, id, second > 0 ? second : null);
         CacheAssert.isOk(result);
     }
 
+    public void listAdd(String key, S id) {
+        listAdd(key, id, 0);
+    }
+
+
+    @Override
+    public void listAdd(String key, List<T> list, long second) {
+        boolean result = this.redissonTemplate.addList(key, list, second > 0 ? second : null);
+        CacheAssert.isOk(result);
+    }
+
+    @Override
+    public void listAdd(String key, List<T> list) {
+        listAdd(key, list, 0);
+    }
 
     @Override
     public void listDel(String key) {
-        boolean result = this.redissonTemplate.delList(key);
+        boolean result = this.redissonTemplate.cleanList(key);
         CacheAssert.isOk(result);
     }
+
+    @Override
+    public void listRmv(String key, S id) {
+        boolean result = this.redissonTemplate.rmvList(key, id);
+        CacheAssert.isOk(result);
+    }
+
+    @Override
+    public List<T> findT(String key) {
+        return this.redissonTemplate.findList(key);
+    }
+
+    @Override
+    public List<S> findS(String key) {
+        return this.redissonTemplate.findList(key);
+    }
+
+    //----------------map------------------------
+
+    @Override
+    public void mapPut(String key, T t, long second) {
+        boolean result = this.redissonTemplate.mapAdd(key, getId(t), t, second > 0 ? second : null);
+        CacheAssert.isOk(result);
+    }
+
+    @Override
+    public void mapUpt(String key, T t) {
+        boolean result = this.redissonTemplate.mapUpt(key, getId(t), t);
+        CacheAssert.isOk(result);
+    }
+
+    @Override
+    public void mapRmv(String key, Serializable id) {
+        boolean result = this.redissonTemplate.mapRmv(key, String.valueOf(id));
+        CacheAssert.isOk(result);
+    }
+
+    @Override
+    public void mapDel(String key) {
+        boolean result = this.redissonTemplate.mapClean(key);
+        CacheAssert.isOk(result);
+    }
+
+    @Override
+    public List<T> fromMap(String key, int batchSize) {
+        return this.redissonTemplate.findFromMap(key, batchSize);
+    }
+
+
 
 }

@@ -4,7 +4,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.io.Serializable;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -103,6 +105,9 @@ public class GoodsSaleInfo implements Serializable {
      * 最后修改时间
      */
     private LocalDateTime lastModifiedTime;
+
+    @TableField(exist = false)
+    private Integer inventory;
 
 
     public static final String GOODS_ID = "goods_id";

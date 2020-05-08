@@ -31,7 +31,7 @@ import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
  */
 @RestController
 @RequestMapping("/rest/inner/warehouse")
-@Api(description = "仓库管理")
+@Api(tags = "Admin-仓库管理")
 public class WarehouseController {
 
     private final WarehouseManager warehouseManager;

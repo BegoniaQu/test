@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
  * Motto: you can do it
  */
 @Component
-public class UserCacheService extends AbstractCacheServiceImpl<UserInfo> {
+public class UserCacheService extends AbstractCacheServiceImpl<UserInfo, Long> {
 
 
     @Autowired
