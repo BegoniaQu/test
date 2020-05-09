@@ -1,10 +1,11 @@
 #server:
 #  port: 8082
-
 mybatis-plus:
   mapper-locations: classpath:/mapper/*Mapper.xml
   typeAliasesPackage: com.yc.fresh.service.entity
   executor-type: reuse
+  global-config:
+    banner: false
 
 
   configuration:
@@ -19,6 +20,9 @@ spring:
     encoding:
       enabled: true
       charset: UTF-8
+  application:
+    name: fresh
+
 
 swagger: true
 
@@ -27,7 +31,9 @@ redisson:
   host: 39.99.135.185
   port: 6379
   pwd: w8y0E,Xm
-
+#server:
+#  servlet:
+#    context-path: /fresh
 
 
 
