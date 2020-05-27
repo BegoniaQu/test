@@ -2,7 +2,7 @@ package com.yc.fresh.busi.id;
 
 import com.yc.fresh.busi.cache.key.RedisKeyUtils;
 import com.yc.fresh.common.cache.lock.impl.LockProxy;
-import com.yc.fresh.common.cache.template.RedissonTemplate;
+import com.yc.fresh.common.cache.template.RedisTemplate;
 import com.yc.fresh.common.exception.SCApiRuntimeException;
 import com.yc.fresh.common.lock.DistributedLock;
 import com.yc.fresh.common.utils.DateUtils;
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class IdGenerator {
 
-    private final RedissonTemplate redissonTemplate;
+    private final RedisTemplate redisTemplate;
     private final DistributedLock<LockProxy> distributedLock;
 
     private static final String format = "yyMMddHHmmss";
@@ -26,8 +26,8 @@ public class IdGenerator {
     public static final String ORDERID_PREFIX = "60";
 
     @Autowired
-    public IdGenerator(RedissonTemplate redissonTemplate, DistributedLock distributedLock) {
-        this.redissonTemplate = redissonTemplate;
+    public IdGenerator(RedisTemplate redisTemplate, DistributedLock distributedLock) {
+        this.redisTemplate = redisTemplate;
         this.distributedLock = distributedLock;
     }
 
@@ -52,13 +52,13 @@ public class IdGenerator {
             throw new SCApiRuntimeException();
         }
         String bizCodeCounterKey = RedisKeyUtils.bizCodeCounterKey(frontPart);
-        Integer value = redissonTemplate.getInteger(bizCodeCounterKey);
+        Integer value = redisTemplate.getInteger(bizCodeCounterKey);
         if(value == null){
             value = initValue;
         }else{
             value ++;
         }
-        redissonTemplate.set(bizCodeCounterKey, value ,3L); //6-3
+        redisTemplate.set(bizCodeCounterKey, value ,3L); //6-3
         // unlock
         lockProxy.release();
         String valueStr = String.valueOf(value);

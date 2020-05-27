@@ -2,6 +2,7 @@ package com.yc.fresh.api.rest.inner.convertor;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.yc.fresh.api.rest.inner.req.bean.StockSkuAddReqBean;
+import com.yc.fresh.api.rest.inner.resp.bean.StockGdRespBean;
 import com.yc.fresh.api.rest.inner.resp.bean.StockPageRespBean;
 import com.yc.fresh.common.PageResult;
 import com.yc.fresh.common.utils.DateUtils;
@@ -62,5 +63,21 @@ public class WarehouseStockConvertor {
             respBeans.add(respBean);
         }
         return new PageResult(respBeans, page.getCurrent(), page.getSize(), page.getTotal());
+    }
+
+
+    public static List<StockGdRespBean> convert(List<WarehouseStock> warehouseStocks) {
+        List<StockGdRespBean> respBeans = new ArrayList<>();
+        for (WarehouseStock one : warehouseStocks) {
+            StockGdRespBean respBean = new StockGdRespBean();
+            respBean.setSkuId(one.getSkuId());
+            respBean.setSkuName(one.getSkuName());
+            respBean.setUnitType(one.getUnitType());
+            respBean.setUnit(one.getUnit());
+            respBean.setSpec(one.getSpec());
+            respBean.setCostPrice(one.getCostPrice());
+            respBeans.add(respBean);
+        }
+        return respBeans;
     }
 }

@@ -1,6 +1,6 @@
 package com.yc.fresh.common.cache.lock.impl;
 
-import com.yc.fresh.common.cache.template.RedissonTemplate;
+import com.yc.fresh.common.cache.template.RedisTemplate;
 import com.yc.fresh.common.lock.DistributedLock;
 import org.redisson.api.RLock;
 import org.slf4j.Logger;
@@ -20,10 +20,10 @@ public class Lock implements DistributedLock<LockProxy> {
     private static final long defaultWaitLockTimeOUt = 2L;
     private static final long defaultExpired = 3L;
 
-    private final RedissonTemplate redissonTemplate;
+    private final RedisTemplate redisTemplate;
 
-    public Lock(RedissonTemplate redissonTemplate) {
-        this.redissonTemplate = redissonTemplate;
+    public Lock(RedisTemplate redisTemplate) {
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -37,7 +37,7 @@ public class Lock implements DistributedLock<LockProxy> {
         Assert.isTrue(waitSecond != null && waitSecond > 0, "waitSecond must be greater than 0");
         Assert.isTrue(expiredSecond != null && expiredSecond > 0, "expiredSecond must be greater than 0");
         try {
-            RLock rLock = redissonTemplate.acquireDistLock(lockName);
+            RLock rLock = redisTemplate.acquireDistLock(lockName);
             boolean locked = rLock.tryLock(waitSecond, expiredSecond, TimeUnit.SECONDS);
             if(locked){
                 return new LockProxy(rLock);

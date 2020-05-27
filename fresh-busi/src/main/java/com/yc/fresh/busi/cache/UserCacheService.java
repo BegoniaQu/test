@@ -3,7 +3,7 @@ package com.yc.fresh.busi.cache;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.yc.fresh.common.cache.service.impl.AbstractCacheServiceImpl;
-import com.yc.fresh.common.cache.template.RedissonTemplate;
+import com.yc.fresh.common.cache.template.RedisTemplate;
 import com.yc.fresh.service.IUserInfoService;
 import com.yc.fresh.service.entity.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,21 +18,23 @@ public class UserCacheService extends AbstractCacheServiceImpl<UserInfo, Long> {
 
 
     @Autowired
-    public UserCacheService(RedissonTemplate redissonTemplate, IUserInfoService userInfoIService) {
-        super(redissonTemplate, userInfoIService);
+    public UserCacheService(RedisTemplate redisTemplate, IUserInfoService userInfoIService) {
+        super(redisTemplate, userInfoIService);
     }
 
 
     public UserInfo getByOpenId(String openid) {
         String key = "openid:" + openid;
-        UserInfo u = this.redissonTemplate.getEntity(key, null);
+        UserInfo u = this.redisTemplate.getEntity(key, null);
         if (u == null) { //cache 未命中
             QueryWrapper<UserInfo> queryWrapper = Wrappers.query();
             queryWrapper.eq(UserInfo.WX_OPEN_ID, openid);
             u = this.dbService.getOne(queryWrapper);
         }
         if (u != null) {
-            this.redissonTemplate.set(key, u, defaultLiveSecond);
+            //u.setCreateTime(null);
+            u.setLastModifiedTime(null);
+            this.redisTemplate.set(key, u, defaultLiveSecond);
         }
         return u;
     }

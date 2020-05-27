@@ -9,6 +9,7 @@ import com.yc.fresh.busi.cache.SaleGoodsPicCacheService;
 import com.yc.fresh.busi.validator.SaleGoodsValidator;
 import com.yc.fresh.busi.validator.WarehouseStockValidator;
 import com.yc.fresh.common.ServiceAssert;
+import com.yc.fresh.common.exception.SCTargetExistsRuntimeException;
 import com.yc.fresh.common.utils.DateUtils;
 import com.yc.fresh.service.IGoodsSaleInfoService;
 import com.yc.fresh.service.IGoodsSalePicService;
@@ -35,7 +36,6 @@ import java.util.List;
 public class SaleGoodsManager {
 
     private final IGoodsSaleInfoService goodsSaleInfoService;
-    private final ISkuInfoService skuInfoService;
     private final IGoodsSalePicService goodsSalePicService;
     private final WarehouseStockValidator warehouseStockValidator;
     private final SaleGoodsValidator saleGoodsValidator;
@@ -43,26 +43,44 @@ public class SaleGoodsManager {
     private final SaleGoodsPicCacheService saleGoodsPicCacheService;
 
     @Autowired
-    public SaleGoodsManager(IGoodsSaleInfoService goodsSaleInfoService, WarehouseStockValidator warehouseStockValidator, ISkuInfoService skuInfoService, IGoodsSalePicService goodsSalePicService, SaleGoodsValidator saleGoodsValidator, SaleGoodsCacheService saleGoodsCacheService, SaleGoodsPicCacheService saleGoodsPicCacheService) {
+    public SaleGoodsManager(IGoodsSaleInfoService goodsSaleInfoService, WarehouseStockValidator warehouseStockValidator, IGoodsSalePicService goodsSalePicService, SaleGoodsValidator saleGoodsValidator, SaleGoodsCacheService saleGoodsCacheService, SaleGoodsPicCacheService saleGoodsPicCacheService) {
         this.goodsSaleInfoService = goodsSaleInfoService;
         this.warehouseStockValidator = warehouseStockValidator;
-        this.skuInfoService = skuInfoService;
         this.goodsSalePicService = goodsSalePicService;
         this.saleGoodsValidator = saleGoodsValidator;
         this.saleGoodsCacheService = saleGoodsCacheService;
         this.saleGoodsPicCacheService = saleGoodsPicCacheService;
     }
 
+    public List<GoodsSaleInfo> find(String warehouseCode, Long skuId) {
+        QueryWrapper<GoodsSaleInfo> wrapper = Wrappers.query();
+        wrapper.eq(GoodsSaleInfo.WAREHOUSE_CODE, warehouseCode);
+        wrapper.in(GoodsSaleInfo.SKU_ID, skuId);
+        return this.goodsSaleInfoService.list(wrapper);
+    }
 
     @Transactional(rollbackFor = Exception.class)
     public void doAdd(GoodsSaleInfo t) {
         WarehouseStock ws = warehouseStockValidator.validate(t.getWarehouseCode(), t.getSkuId());
-        SkuInfo sku = skuInfoService.getById(t.getSkuId());
-        t.setFCategoryId(sku.getFCategoryId());
-        t.setSCategoryId(sku.getSCategoryId());
+        checkDuplicate(t);
+        //SkuInfo sku = skuInfoService.getById(t.getSkuId());
+        t.setFCategoryId(ws.getFCategoryId());
+        t.setSCategoryId(ws.getSCategoryId());
         t.setUnit(ws.getUnit());
         boolean flag = goodsSaleInfoService.save(t);
         ServiceAssert.isOk(flag, "add saleGoods failed");
+    }
+
+    private void checkDuplicate(GoodsSaleInfo t) {
+        List<GoodsSaleInfo> dbList = find(t.getWarehouseCode(), t.getSkuId());
+        for (GoodsSaleInfo one : dbList) {
+            if (one.getStatus() == SaleGoodsStatusEnum.INVALID.getV()) {
+                continue;
+            }
+            if (one.compose().equals(t.compose())) {
+                throw new SCTargetExistsRuntimeException("重复添加");
+            }
+        }
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -96,6 +114,7 @@ public class SaleGoodsManager {
     }
 
     private int getRealNum(int stockNum, GoodsSaleInfo goods) {
+        Assert.isTrue(stockNum > 0, "商品库存不足,无法上架");
         int unitOcuppyNum = goods.getBundles()*goods.getSaleCv();
         return stockNum/unitOcuppyNum;
     }
@@ -113,7 +132,7 @@ public class SaleGoodsManager {
     public void doUpdate(GoodsSaleInfo t) {
         GoodsSaleInfo goods = saleGoodsValidator.validate(t.getGoodsId());
         Assert.isTrue(goods.getStatus() != SaleGoodsStatusEnum.SALEABLE.getV(), "上架的商品不能进行更新");
-
+        checkDuplicate(t);
         List<Integer> properStatusList = Arrays.asList(SaleGoodsStatusEnum.UNSALEABLE.getV(), SaleGoodsStatusEnum.AVAILABLE.getV());
         QueryWrapper<GoodsSaleInfo> wrapper = Wrappers.query();
         wrapper.eq(GoodsSaleInfo.GOODS_ID, t.getGoodsId());

@@ -59,7 +59,7 @@ public class LogFilter extends AbstractFilter implements Ordered {
                 handle(response, resultBean);
                 return;
             }
-            if (contentType.equals(CONTENT_TYPE)) {
+            if (contentType.contains(CONTENT_TYPE)) {
                 myRequestWrapper = new MyRequestWrapper(request, getBody(request));
                 sb.append(" ,body: ");
                 sb.append(myRequestWrapper.getBody());

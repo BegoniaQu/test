@@ -8,11 +8,10 @@ import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.yc.fresh.api.filter.AuthFilter;
 import com.yc.fresh.api.filter.LogFilter;
 import com.yc.fresh.common.cache.lock.impl.Lock;
-import com.yc.fresh.common.cache.template.RedissonTemplate;
+import com.yc.fresh.common.cache.template.RedisTemplate;
 import com.yc.fresh.common.lock.DistributedLock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -51,7 +50,7 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     @Bean
-    public DistributedLock geLock(RedissonTemplate redissonTemplate) {
-        return new Lock(redissonTemplate);
+    public DistributedLock geLock(RedisTemplate redisTemplate) {
+        return new Lock(redisTemplate);
     }
 }

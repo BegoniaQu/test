@@ -11,6 +11,9 @@ import java.util.List;
  */
 public interface ICacheService<T,S> {
 
+    void set(String key, S id);
+    void del(String key);
+
     void add(T t, long second);
     T getByPid(S id);
     void removeByPid(S id);
@@ -30,4 +33,7 @@ public interface ICacheService<T,S> {
     void mapDel(String key);
     List<T> fromMap(String key, int batchSize);
 
+    void increment(String key, long second);
+    void decrement(String key);
+    Long getNum(String key);
 }

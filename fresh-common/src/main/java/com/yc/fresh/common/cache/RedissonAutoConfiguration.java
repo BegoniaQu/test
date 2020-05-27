@@ -1,8 +1,12 @@
 package com.yc.fresh.common.cache;
 
-import com.yc.fresh.common.cache.template.RedissonTemplate;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.yc.fresh.common.cache.template.RedisTemplate;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
+import org.redisson.client.codec.Codec;
 import org.redisson.codec.MsgPackJacksonCodec;
 import org.redisson.config.Config;
 import org.redisson.config.SingleServerConfig;
@@ -51,7 +55,7 @@ public class RedissonAutoConfiguration implements InitializingBean {
         Config config = new Config();
         config.setThreads(0);
         config.setNettyThreads(0);
-        config.setCodec(new MsgPackJacksonCodec());
+        config.setCodec(getCodec());
         String address = "redis://"+ redissonProperties.getHost() + ":" + redissonProperties.getPort();
         SingleServerConfig serverConfig = config.useSingleServer()
                 .setClientName(redissonProperties.getClientName())
@@ -66,8 +70,16 @@ public class RedissonAutoConfiguration implements InitializingBean {
         return Redisson.create(config);
     }
 
+    private Codec getCodec() {
+        MsgPackJacksonCodec msgPackJacksonCodec = new MsgPackJacksonCodec();
+        ObjectMapper objectMapper = msgPackJacksonCodec.getObjectMapper();
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        objectMapper.registerModule(new JavaTimeModule());
+        return msgPackJacksonCodec;
+    }
+
     @Bean(destroyMethod = "close")
-    public RedissonTemplate getTemplate(RedissonClient redissonClient) {
-        return new RedissonTemplate(redissonClient);
+    public RedisTemplate getTemplate(RedissonClient redissonClient) {
+        return new RedisTemplate(redissonClient);
     }
 }

@@ -102,6 +102,11 @@ public class GoodsSaleController {
     @ApiOperation(value="编辑售卖商品", produces=APPLICATION_JSON_VALUE, httpMethod = "POST")
     public void edit(@Valid @RequestBody GoodsEditReqBean reqBean) {
         GoodsSaleInfo goodsSaleInfo = SaleGoodsConvertor.convert2Entity(reqBean);
+        GoodsSaleInfo dbOne = this.saleGoodsManager.doGet(reqBean.getGoodsId());
+        Assert.notNull(dbOne, "invalid request");
+        String lockName = LockNameBuilder.buildStock(dbOne.getWarehouseCode(), String.valueOf(dbOne.getSkuId()));
+        LockProxy lock = distributedLock.lock(lockName);
+        Assert.notNull(lock, "资源占用中, 请稍后重试");
         saleGoodsManager.doUpdate(goodsSaleInfo);
     }
 

@@ -1,6 +1,5 @@
 package com.yc.fresh.api.rest.outer;
 
-import com.yc.fresh.common.cache.template.RedissonTemplate;
 import com.yc.fresh.service.IUserOrderService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -21,12 +20,10 @@ public class OrderApi {
 
     private final IUserOrderService userOrderService;
 
-    private final RedissonTemplate redissonTemplate;
 
     @Autowired
-    public OrderApi(IUserOrderService userOrderService, RedissonTemplate redissonTemplate) {
+    public OrderApi(IUserOrderService userOrderService) {
         this.userOrderService = userOrderService;
-        this.redissonTemplate = redissonTemplate;
     }
 
 

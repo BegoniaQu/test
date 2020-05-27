@@ -30,11 +30,19 @@ public class SaleGoodsQryManager {
         return saleGoodsCacheService.findList(warehouseCode, fCategoryId);
     }
 
+    public List<GoodsSaleInfo> findSaleGoods(List<String> goodsIds) {
+        return saleGoodsCacheService.findList(goodsIds);
+    }
+
     public GoodsSaleInfo getByGoodsId(String goodsId) {
         return saleGoodsCacheService.getByPid(goodsId);
     }
 
     public List<GoodsSalePic> findSaleGdPics(String goodsId) {
         return saleGoodsPicCacheService.findPics(goodsId);
+    }
+
+    public List<GoodsSaleInfo> doSearch(String name) {
+        return saleGoodsCacheService.search(name);
     }
 }

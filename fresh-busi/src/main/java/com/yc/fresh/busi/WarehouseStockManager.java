@@ -125,4 +125,14 @@ public class WarehouseStockManager {
         }
         return this.warehouseStockService.page(iPage, wrapper);
     }
+
+
+    public List<WarehouseStock> findBySkuName(String warehouseCode, String skuName) {
+        Assert.hasText(warehouseCode, "param missed");
+        Assert.hasText(skuName, "param missed");
+        QueryWrapper<WarehouseStock> wrapper = Wrappers.query();
+        wrapper.eq(WarehouseStock.WAREHOUSE_CODE, warehouseCode);
+        wrapper.like(WarehouseStock.SKU_NAME, skuName);
+        return this.warehouseStockService.list(wrapper);
+    }
 }

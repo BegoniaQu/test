@@ -33,21 +33,17 @@ public class Swagger2 {
 
     @Bean
     public Docket createRestApi() {
-        Predicate<RequestHandler> handlerPredicate = RequestHandlerSelectors.none();
-        ApiInfo apiInfo = nothing();
         List<Parameter> parameters = new ArrayList<>();
-        if (swagger) {
-            handlerPredicate = RequestHandlerSelectors.basePackage(basePkg);
-            apiInfo = apiInfo();
-            parameters.add(new ParameterBuilder()
-                    .name("tk")
-                    .description("认证token")
-                    .modelRef(new ModelRef("string"))
-                    .parameterType("header")
-                    .required(false)
-                    .build());
-        }
-        return new Docket(DocumentationType.SWAGGER_2)
+        Predicate<RequestHandler> handlerPredicate = RequestHandlerSelectors.basePackage(basePkg);
+        ApiInfo apiInfo = apiInfo();
+        parameters.add(new ParameterBuilder()
+                .name("tk")
+                .description("认证token")
+                .modelRef(new ModelRef("string"))
+                .parameterType("header")
+                .required(false)
+                .build());
+        return new Docket(DocumentationType.SWAGGER_2).enable(swagger)
                 .apiInfo(apiInfo)
                 .select()
                 //.apis(RequestHandlerSelectors.withClassAnnotation(Api.class))
@@ -55,15 +51,6 @@ public class Swagger2 {
                 .paths(PathSelectors.any())
                 .build()
                 .globalOperationParameters(parameters);
-    }
-
-
-    private ApiInfo nothing() {
-        return new ApiInfoBuilder()
-                .title("")
-                .description("")
-                .version("")
-                .build();
     }
 
 

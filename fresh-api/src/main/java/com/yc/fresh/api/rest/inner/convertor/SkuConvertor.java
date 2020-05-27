@@ -27,7 +27,7 @@ public class SkuConvertor {
         SkuInfo skuInfo = new SkuInfo();
         skuInfo.setFCategoryId(reqBean.getFCategoryId());
         skuInfo.setSCategoryId(reqBean.getSCategoryId());
-        skuInfo.setSkuName(reqBean.getSkuName());
+        skuInfo.setSkuName(dealName(reqBean.getSkuName()));
         skuInfo.setSpec(reqBean.getSpec());
         skuInfo.setUnit(reqBean.getUnit());
         skuInfo.setUnitType(reqBean.getUnitType());
@@ -36,13 +36,18 @@ public class SkuConvertor {
         return skuInfo;
     }
 
+    private static String dealName(String name) {
+        return name.replaceAll("（", "(").
+                replaceAll("）", ")");
+    }
+
     public static SkuInfo convert2Entity(SkuEditReqBean reqBean) {
         LocalDateTime curDate = DateUtils.getCurrentDate();
         SkuInfo skuInfo = new SkuInfo();
         skuInfo.setSkuId(reqBean.getSkuId());
         skuInfo.setFCategoryId(reqBean.getFCategoryId());
         skuInfo.setSCategoryId(reqBean.getSCategoryId());
-        skuInfo.setSkuName(reqBean.getSkuName());
+        skuInfo.setSkuName(dealName(reqBean.getSkuName()));
         skuInfo.setSpec(reqBean.getSpec());
         skuInfo.setUnit(reqBean.getUnit());
         skuInfo.setUnitType(reqBean.getUnitType());

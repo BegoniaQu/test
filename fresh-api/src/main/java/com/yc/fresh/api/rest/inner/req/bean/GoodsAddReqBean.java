@@ -34,7 +34,7 @@ public class GoodsAddReqBean {
 
     @ApiModelProperty(value = "商品主图", required = true)
     @NotBlank
-    private String mPicPath;
+    private String mainPicPath;
 
     @ApiModelProperty(value = "原价", required = true)
     @NotNull

@@ -4,6 +4,7 @@ import io.netty.channel.EventLoopGroup;
 import org.redisson.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -12,13 +13,13 @@ import java.util.concurrent.TimeUnit;
  * Created by quyang on 2017/6/9.
  *
  */
-public class RedissonTemplate {
+public class RedisTemplate {
 
-    private static final Logger log = LoggerFactory.getLogger("RedissonTemplate");
+    private static final Logger log = LoggerFactory.getLogger("RedisTemplate");
 
     private RedissonClient redissonClient;
 
-    public RedissonTemplate(RedissonClient redissonClient) {
+    public RedisTemplate(RedissonClient redissonClient) {
         this.redissonClient = redissonClient;
     }
 
@@ -34,10 +35,20 @@ public class RedissonTemplate {
             }
         } catch (Exception e) {
             flag = false;
-            log.error("redisson: set operation error",e);
+            log.error("redis: set operation error",e);
         }
         return flag;
     }
+
+
+    public List<String> keyLike(String keyPattern) {
+        RKeys keys = redissonClient.getKeys();
+        Iterable<String> iterator = keys.getKeysByPattern(keyPattern);
+        List<String> list = new ArrayList<>();
+        iterator.forEach(t->list.add(t));
+        return this.getEntitys(list);
+    }
+
 
 
     public Integer getInteger(String key){
@@ -45,7 +56,7 @@ public class RedissonTemplate {
             RBucket<Integer> rBucket = redissonClient.getBucket(key);
             return rBucket.get();
         } catch (Exception e) {
-            log.error("redisson: getInteger error",e);
+            log.error("redis: getInteger error",e);
         }
         return null;
     }
@@ -56,7 +67,7 @@ public class RedissonTemplate {
             RBucket<T> rBucket = redissonClient.getBucket(key);
             return rBucket.get();
         } catch (Exception e) {
-            log.error("redisson: getEntity error",e);
+            log.error("redis: getEntity error",e);
             if (Objects.nonNull(nil)) {
                 nil.setE(true);
             }
@@ -71,13 +82,16 @@ public class RedissonTemplate {
             rBucket.delete();
         } catch (Exception e) {
             flag = false;
-            log.error("redisson: delEntity error",e);
+            log.error("redis: delEntity error",e);
         }
         return flag;
     }
 
 
     public <T> List<T> getEntitys(List<String> keys) {
+        if (CollectionUtils.isEmpty(keys)) {
+            return Collections.emptyList();
+        }
         List<T> list = new ArrayList<>();
         try {
             RBuckets buckets = redissonClient.getBuckets();
@@ -86,7 +100,7 @@ public class RedissonTemplate {
                 list.add(stringTEntry.getValue());
             }
         } catch (Exception e) {
-            log.error("redisson: getEntitys error",e);
+            log.error("redis: getEntitys error",e);
         }
         return list;
     }
@@ -96,27 +110,46 @@ public class RedissonTemplate {
             RBucket<T> rBucket = redissonClient.getBucket(key);
             return rBucket.get();
         } catch (Exception e) {
-            log.error("redisson: getEntity error",e);
+            log.error("redis: getEntity error",e);
         }
         return null;
     }
 
 
-
     public <T> boolean appendList(String key, T t, Long second){
-        boolean flag = true;
+        boolean flag;
+        RList<T> rList = redissonClient.getList(key);
         try{
-            RList<T> rList = redissonClient.getList(key);
-            rList.add(t);
-            if(second != null){
-                rList.expire(second, TimeUnit.SECONDS);
-            }
+            flag = rList.add(t);
         } catch (Exception e) {
             flag = false;
-            log.error("redisson: appendList error",e);
+            log.error("redis: appendList error",e);
         }
+        if (!flag) {
+            return flag;
+        }
+        setExpireTime(second, rList);
         return flag;
     }
+
+
+    private void setExpireTime(Long second, RList rList) {
+        if(second == null){
+            return;
+        }
+        boolean expireOk;
+        try {
+            expireOk = rList.expire(second, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            expireOk = false;
+            log.error("redis: expire operation error",e);
+        }
+        if (!expireOk) {
+            //TODO 补偿机制
+        }
+    }
+
+
 
     public <T> List<T> findList(String key){
         try {
@@ -129,17 +162,18 @@ public class RedissonTemplate {
     }
 
     public <T> boolean addList(String key, List<T> list, Long second){
-        boolean flag = true;
+        boolean flag;
+        RList<T> rList = redissonClient.getList(key);
         try{
-            RList<T> rList = redissonClient.getList(key);
-            rList.addAll(list);
-            if(second != null){
-                rList.expire(second, TimeUnit.SECONDS);
-            }
+            flag = rList.addAll(list);
         } catch (Exception e) {
             flag = false;
-            log.error("redisson: addList error",e);
+            log.error("redis: addList error",e);
         }
+        if (!flag) {
+            return flag;
+        }
+        setExpireTime(second, rList);
         return flag;
     }
 
@@ -151,7 +185,7 @@ public class RedissonTemplate {
             rList.delete();
         }catch (Exception e) {
             flag = false;
-            log.error("redisson: cleanList error", e);
+            log.error("redis: cleanList error", e);
         }
         return flag;
     }
@@ -163,25 +197,42 @@ public class RedissonTemplate {
             rList.remove(o);
         }catch (Exception e) {
             flag = false;
-            log.error("redisson: rmvList error", e);
+            log.error("redis: rmvList error", e);
         }
         return flag;
     }
 
 
+    private void setExpireTime(Long second, RMap rMap) {
+        if(second == null){
+            return;
+        }
+        boolean expireOk;
+        try {
+            expireOk = rMap.expire(second, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            expireOk = false;
+            log.error("redis: expire operation error",e);
+        }
+        if (!expireOk) {
+            //TODO 补偿机制
+        }
+    }
+
 
     public  <T> boolean mapAdd(String key, String id, T t, Long second) {
         boolean flag = true;
+        RMap<String, T> map = redissonClient.getMap(key);
         try {
-            RMap<String, T> map = redissonClient.getMap(key);
             map.fastPut(id, t);
-            if(second != null){
-                map.expire(second, TimeUnit.SECONDS);
-            }
         } catch (Exception e) {
             flag = false;
-            log.error("redisson: mapAdd error", e);
+            log.error("redis: mapAdd error", e);
         }
+        if (!flag) {
+            return flag;
+        }
+        setExpireTime(second, map);
         return flag;
     }
 
@@ -192,7 +243,7 @@ public class RedissonTemplate {
             map.fastPut(id, t);
         } catch (Exception e) {
             flag = false;
-            log.error("redisson: mapUpt error", e);
+            log.error("redis: mapUpt error", e);
         }
         return flag;
 
@@ -205,7 +256,7 @@ public class RedissonTemplate {
             map.fastRemove(id);
         } catch (Exception e) {
             flag = false;
-            log.error("redisson: mapRmv error", e);
+            log.error("redis: mapRmv error", e);
         }
         return flag;
     }
@@ -217,7 +268,7 @@ public class RedissonTemplate {
             map.delete();
         } catch (Exception e) {
             flag = false;
-            log.error("redisson: mapClean error", e);
+            log.error("redis: mapClean error", e);
         }
         return flag;
     }
@@ -232,9 +283,29 @@ public class RedissonTemplate {
             }
             return list;
         } catch (Exception e) {
-            log.error("redisson: findFromMap error",e);
+            log.error("redis: findFromMap error",e);
         }
         return Collections.emptyList();
+    }
+
+    public <T> Map<String, T> findMap(String key, int batchSize) {
+        Map<String, T> vMap = new HashMap<>();
+        RMap<String, T> map = redissonClient.getMap(key);
+        try {
+            for (Map.Entry<String, T> stringTEntry : map.entrySet(batchSize)) {
+                vMap.put(stringTEntry.getKey(), stringTEntry.getValue());
+            }
+            return vMap;
+        } catch (Exception e) {
+            log.error("redis: findMap error",e);
+        }
+        return Collections.emptyMap();
+    }
+
+
+    public <T> T getFromMap(String key, String internalKey) {
+        RMap<String, T> map = redissonClient.getMap(key);
+        return map.get(internalKey);
     }
 
     /**
@@ -242,15 +313,12 @@ public class RedissonTemplate {
      * @param key
      * @param map Double 代表分数，用于排序。用户自己设置分数，如：以创建时间作为分数等
      */
-    public void addOne2ManyWithScore(String key, Map<String, Double> map, Long second){
+    public void addOne2ManyWithScore(String key, Map<String, Double> map){
         try {
             RScoredSortedSet<String> sortedSet = redissonClient.getScoredSortedSet(key);
             sortedSet.addAll(map);
-            if(second != null){
-                sortedSet.expire(second, TimeUnit.SECONDS);
-            }
         } catch (Exception e) {
-            log.error("redisson: addOne2ManyWithScore error",e);
+            log.error("redis: addOne2ManyWithScore error",e);
         }
     }
 
@@ -268,17 +336,72 @@ public class RedissonTemplate {
                 return (List<String>) sortedSet.valueRangeReversed(0, size);
             }
         } catch (Exception e) {
-            log.error("redisson: findOne2ManySortedByScore error",e);
+            log.error("redis: findOne2ManySortedByScore error",e);
         }
         return null;
     }
 
 
-    public RLock acquireDistLock(String lockName) {
-        return redissonClient.getLock(lockName);
+
+    private void setExpireTime(Long second, RAtomicLong atomicLong) {
+        if(second == null){
+            return;
+        }
+        boolean expireOk;
+        try {
+            expireOk = atomicLong.expire(second, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            expireOk = false;
+            log.error("redis: expire operation error",e);
+        }
+        if (!expireOk) {
+            //TODO 补偿机制
+        }
+    }
+
+    public boolean incrementLong(String key, Long second) {
+        boolean flag = true;
+        RAtomicLong atomicLong = this.redissonClient.getAtomicLong(key);
+        try {
+            atomicLong.incrementAndGet();
+        } catch (Exception e) {
+            flag = false;
+            log.error("redis: incrementLong error", e);
+        }
+        if (!flag) {
+            return flag;
+        }
+        setExpireTime(second, atomicLong);
+        return flag;
+    }
+
+    public boolean decrementLong(String key) {
+        boolean flag = true;
+        try {
+            RAtomicLong atomicLong = this.redissonClient.getAtomicLong(key);
+            atomicLong.decrementAndGet();
+        } catch (Exception e) {
+            flag = false;
+            log.error("redis: decrementLong error", e);
+        }
+        return flag;
+    }
+
+    public Long getNum(String key) {
+        try {
+            RAtomicLong atomicLong = this.redissonClient.getAtomicLong(key);
+            return atomicLong.get();
+        } catch (Exception e) {
+            log.error("redis: getNum error", e);
+        }
+        return null;
     }
 
 
+
+    public RLock acquireDistLock(String lockName) {
+        return redissonClient.getLock(lockName);
+    }
 
     public void close() {
         log.info("shutdown redis");
@@ -289,4 +412,14 @@ public class RedissonTemplate {
         redissonClient.shutdown();
     }
 
+
+
+    /*String listAddLua = "return redis.call('RPUSH', KEYS[1], ARGV[1]);";
+
+    public void testScriptList(String key, Object t) {
+        Long v = redissonClient.getScript().eval(RScript.Mode.READ_WRITE,
+                listAddLua, RScript.ReturnType.INTEGER, Arrays.asList(key), t);
+        System.out.println(v);
+    }
+*/
 }

@@ -2,6 +2,7 @@ package com.yc.fresh.api.rest.outer.convertor;
 
 import com.yc.fresh.api.rest.outer.resp.bean.SaleGdBriefRespVO;
 import com.yc.fresh.api.rest.outer.resp.bean.SaleGdDetailVO;
+import com.yc.fresh.api.rest.outer.resp.bean.SaleGdSearchRespBean;
 import com.yc.fresh.service.entity.GdCategory;
 import com.yc.fresh.service.entity.GoodsSaleInfo;
 import com.yc.fresh.service.entity.GoodsSalePic;
@@ -52,5 +53,19 @@ public class SaleGoodsConvertor {
             urls.add(pic.getSPicPath());
         }
         return vo;
+    }
+
+    public static List<SaleGdSearchRespBean> convert(List<GoodsSaleInfo> goodsSaleInfos) {
+        List<SaleGdSearchRespBean> respBeans = new ArrayList<>();
+        for (GoodsSaleInfo one : goodsSaleInfos) {
+            SaleGdSearchRespBean respBean = new SaleGdSearchRespBean();
+            respBean.setGoodsId(one.getGoodsId());
+            respBean.setGoodsName(one.getGoodsName());
+            respBean.setMPicPath(one.getMPicPath());
+            respBean.setRawPrice(one.getRawPrice());
+            respBean.setSalePrice(one.getSalePrice());
+            respBeans.add(respBean);
+        }
+        return respBeans;
     }
 }

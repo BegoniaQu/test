@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yc.fresh.api.builder.LockNameBuilder;
 import com.yc.fresh.api.rest.inner.convertor.WarehouseStockConvertor;
 import com.yc.fresh.api.rest.inner.req.bean.*;
+import com.yc.fresh.api.rest.inner.resp.bean.StockGdRespBean;
 import com.yc.fresh.api.rest.inner.resp.bean.StockPageRespBean;
 import com.yc.fresh.busi.GdCategoryManager;
 import com.yc.fresh.busi.WarehouseManager;
@@ -17,6 +18,7 @@ import com.yc.fresh.service.entity.Warehouse;
 import com.yc.fresh.service.entity.WarehouseStock;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
@@ -99,5 +101,14 @@ public class WarehouseStockController {
         List<Warehouse> warehouses = warehouseManager.query(null);
         return WarehouseStockConvertor.convert2PageBean(page, fCategories, subMap, warehouses);
     }
+
+    @GetMapping("/sku/search")
+    @ApiOperation(value="库存商品搜索", produces=APPLICATION_JSON_VALUE, responseContainer = "List",response = StockGdRespBean.class, httpMethod = "GET")
+    public List<StockGdRespBean> findStockGdForSaleGoods(@ApiParam("仓库编码") @RequestParam String warehouseCode,
+                                                         @ApiParam("sku名称")@RequestParam String skuName) {
+        List<WarehouseStock> warehouseStocks = warehouseStockManager.findBySkuName(warehouseCode, skuName);
+        return WarehouseStockConvertor.convert(warehouseStocks);
+    }
+
 
 }

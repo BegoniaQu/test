@@ -4,29 +4,22 @@ import com.yc.fresh.api.rest.outer.convertor.SaleGoodsConvertor;
 import com.yc.fresh.api.rest.outer.req.bean.SaleGoodsPageQryBean;
 import com.yc.fresh.api.rest.outer.resp.bean.SaleGdBriefRespVO;
 import com.yc.fresh.api.rest.outer.resp.bean.SaleGdDetailVO;
+import com.yc.fresh.api.rest.outer.resp.bean.SaleGdSearchRespBean;
 import com.yc.fresh.busi.cache.GdCategoryCacheService;
 import com.yc.fresh.busi.outer.SaleGoodsQryManager;
-import com.yc.fresh.common.PageResult;
-import com.yc.fresh.common.exception.SCApiRuntimeException;
 import com.yc.fresh.service.entity.GdCategory;
 import com.yc.fresh.service.entity.GoodsSaleInfo;
 import com.yc.fresh.service.entity.GoodsSalePic;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.ObjectUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
@@ -47,6 +40,14 @@ public class SaleGoodsApi {
         this.saleGoodsQryManager = saleGoodsQryManager;
         this.gdCategoryCacheService = gdCategoryCacheService;
     }
+
+    @GetMapping("/search")
+    @ApiOperation(value="商品搜索", produces=APPLICATION_JSON_VALUE, responseContainer = "List", response = SaleGdSearchRespBean.class, httpMethod = "GET")
+    public List<SaleGdSearchRespBean> search(@ApiParam("名称搜索") @RequestParam String name) {
+        List<GoodsSaleInfo> goodsSaleInfos = saleGoodsQryManager.doSearch(name);
+        return SaleGoodsConvertor.convert(goodsSaleInfos);
+    }
+
 
     @GetMapping("/list")
     @ApiOperation(value="商品列表", produces=APPLICATION_JSON_VALUE, response = SaleGdBriefRespVO.class, httpMethod = "GET")

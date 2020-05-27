@@ -2,7 +2,7 @@ package com.yc.fresh.busi.cache;
 
 import com.yc.fresh.busi.cache.key.RedisKeyUtils;
 import com.yc.fresh.common.cache.service.impl.AbstractCacheServiceImpl;
-import com.yc.fresh.common.cache.template.RedissonTemplate;
+import com.yc.fresh.common.cache.template.RedisTemplate;
 import com.yc.fresh.service.IGoodsSalePicService;
 import com.yc.fresh.service.entity.GoodsSalePic;
 import lombok.extern.slf4j.Slf4j;
@@ -18,8 +18,8 @@ import java.util.List;
 @Slf4j
 public class SaleGoodsPicCacheService extends AbstractCacheServiceImpl<GoodsSalePic, Long> {
 
-    public SaleGoodsPicCacheService(RedissonTemplate redissonTemplate, IGoodsSalePicService goodsSalePicService) {
-        super(redissonTemplate, goodsSalePicService);
+    public SaleGoodsPicCacheService(RedisTemplate redisTemplate, IGoodsSalePicService goodsSalePicService) {
+        super(redisTemplate, goodsSalePicService);
     }
 
 

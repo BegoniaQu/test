@@ -142,4 +142,13 @@ public class GoodsSaleInfo implements Serializable {
 
     public static final String LAST_MODIFIED_TIME = "last_modified_time";
 
+
+    public String compose() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(skuId).append(",");
+        sb.append(bundles).append(",");
+        sb.append(saleCv).append(",");
+        sb.append(unit);
+        return sb.toString();
+    }
 }

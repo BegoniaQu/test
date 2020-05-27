@@ -2,7 +2,7 @@ package com.yc.fresh.busi.cache;
 
 import com.yc.fresh.busi.cache.key.RedisKeyUtils;
 import com.yc.fresh.common.cache.service.impl.AbstractCacheServiceImpl;
-import com.yc.fresh.common.cache.template.RedissonTemplate;
+import com.yc.fresh.common.cache.template.RedisTemplate;
 import com.yc.fresh.service.IGdCategoryService;
 import com.yc.fresh.service.entity.GdCategory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +20,8 @@ public class GdCategoryCacheService extends AbstractCacheServiceImpl<GdCategory,
     private static final long categoryLiveSecond = 86400*30;
 
     @Autowired
-    public GdCategoryCacheService(RedissonTemplate redissonTemplate, IGdCategoryService gdCategoryService) {
-        super(redissonTemplate, gdCategoryService);
+    public GdCategoryCacheService(RedisTemplate redisTemplate, IGdCategoryService gdCategoryService) {
+        super(redisTemplate, gdCategoryService);
         //super.defaultLiveSecond =
     }
 

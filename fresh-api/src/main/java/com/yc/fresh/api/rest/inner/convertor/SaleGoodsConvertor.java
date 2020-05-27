@@ -31,7 +31,7 @@ public class SaleGoodsConvertor {
         goods.setWarehouseCode(reqBean.getWarehouseCode());
         goods.setSkuId(reqBean.getSkuId());
         goods.setGoodsName(reqBean.getGoodsName());
-        goods.setMPicPath(reqBean.getMPicPath());
+        goods.setMPicPath(reqBean.getMainPicPath());
         goods.setRawPrice(reqBean.getRawPrice());
         goods.setSalePrice(reqBean.getSalePrice());
         goods.setBundles(reqBean.getBundles());
@@ -49,7 +49,7 @@ public class SaleGoodsConvertor {
         GoodsSaleInfo goods = new GoodsSaleInfo();
         goods.setGoodsId(reqBean.getGoodsId());
         goods.setGoodsName(reqBean.getGoodsName());
-        goods.setMPicPath(reqBean.getMPicPath());
+        goods.setMPicPath(reqBean.getMainPicPath());
         goods.setRawPrice(reqBean.getRawPrice());
         goods.setSalePrice(reqBean.getSalePrice());
         goods.setBundles(reqBean.getBundles());

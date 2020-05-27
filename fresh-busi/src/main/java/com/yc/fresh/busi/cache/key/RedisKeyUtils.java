@@ -13,7 +13,9 @@ public class RedisKeyUtils {
     private static final String firstCategory2List = "firstCategory2List:";
     private static final String warehouseFc2List = "warehouseFc2List:";
     private static final String saleGdPics = "saleGdPics:";
-
+    private static final String user2Shopcar = "user2ShopCar:";
+    private static final String shopCarGd2Num = "shopCarGd2Num:";
+    public static final String saleGdSearch = "gdSearch:";
 
     public static final String delimiter = ":";
 
@@ -36,5 +38,17 @@ public class RedisKeyUtils {
 
     public static String getWarehouseFc2List(String warehouseCode, Integer fCategoryId) {
         return warehouseFc2List + warehouseCode + delimiter + fCategoryId;
+    }
+
+    public static String getUser2Shopcar(Long userId) {
+        return user2Shopcar + userId;
+    }
+
+    public static String getShopCarGd2Num(String goodsId) {
+        return shopCarGd2Num + goodsId;
+    }
+
+    public static String getSaleGdSearch(String name) {
+        return saleGdSearch + name;
     }
 }
