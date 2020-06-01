@@ -41,6 +41,8 @@ public class SaleGdBriefRespVO {
         private BigDecimal salePrice;
         @ApiModelProperty("描述")
         private String description;
+        @ApiModelProperty("库存")
+        private int stockNum;
     }
 }
 

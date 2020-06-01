@@ -77,6 +77,8 @@ public class Warehouse implements Serializable {
      */
     private BigDecimal thresholdAmount;
 
+    private BigDecimal deliveryFee;
+
     /**
      * 1-有效，0-无效
      */

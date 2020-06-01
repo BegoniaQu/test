@@ -43,6 +43,12 @@ public class WarehouseDetailRespBean {
     @ApiModelProperty(value = "仓库起送金额")
     private BigDecimal thresholdAmount;
 
- /*   @ApiModelProperty(value = "状态")
-    private String status;*/
+    @ApiModelProperty(value = "纬度")
+    private String locationX;
+
+    @ApiModelProperty(value = "经度")
+    private String locationY;
+
+    @ApiModelProperty(value = "配送费")
+    private BigDecimal deliveryFee;
 }

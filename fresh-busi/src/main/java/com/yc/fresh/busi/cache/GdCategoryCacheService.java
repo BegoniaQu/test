@@ -47,22 +47,11 @@ public class GdCategoryCacheService extends AbstractCacheServiceImpl<GdCategory,
 
     public void del(GdCategory t) {
         String key = RedisKeyUtils.getFirstCategory2List(t.getParentId());
-        this.mapRmv(key, String.valueOf(t.getId()));
+        this.mapRmv(key, t);
         if (t.getParentId() == 0) { //本身是parent
             String parent2sonKey = RedisKeyUtils.getFirstCategory2List(t.getId());
             this.mapDel(parent2sonKey);
         }
     }
 
-
-   /* public void listAdd(GdCategory t) {
-        String key = RedisKeyUtils.getFirstCategory2List(t.getParentId());
-        this.listAdd(key, t);
-    }
-
-
-    public void listDel(Integer parentId) {
-        String key = RedisKeyUtils.getFirstCategory2List(parentId);
-        this.listDel(key);
-    }*/
 }

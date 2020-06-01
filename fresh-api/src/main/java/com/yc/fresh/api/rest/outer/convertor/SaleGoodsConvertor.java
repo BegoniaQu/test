@@ -33,6 +33,7 @@ public class SaleGoodsConvertor {
             saleGd.setSalePrice(t.getSalePrice());
             saleGd.setDescription(t.getDescription());
             saleGd.setMPicPath(t.getMPicPath());
+            saleGd.setStockNum(t.getInventory());
             return saleGd;
         }).collect(Collectors.groupingBy(m->m.getScId()));
         vo.setGdMap(saleGdMap);

@@ -88,18 +88,16 @@ public abstract class AbstractCacheServiceImpl<T,S extends Serializable> impleme
 
     @Override
     public void set(String key, S id) {
-        boolean result = this.redisTemplate.set(key, id, null);
-        CacheAssert.isOk(result);
+        CacheAssert.isOk(this.redisTemplate.set(key, id, null));
     }
 
     @Override
     public void del(String key) {
-        boolean result = this.redisTemplate.delEntity(key);
-        CacheAssert.isOk(result);
+        CacheAssert.isOk(this.redisTemplate.delEntity(key));
     }
 
     @Override
-    public void add(T t, long second) {
+    public void addT(T t, long second) {
         String id = getId(t);
         String key = keyPrefix + id;
         boolean result = redisTemplate.set(key, t, second > 0 ? second : null);
@@ -107,13 +105,19 @@ public abstract class AbstractCacheServiceImpl<T,S extends Serializable> impleme
     }
 
     public void add(T t) {
-        add(t, 0);
+        addT(t, 0);
     }
 
+    /**
+     * 获取ID
+     * @param t
+     * @return
+     */
     private String getId(T t) {
         try {
             idField.setAccessible(true);
             Object v = idField.get(t);
+            idField.setAccessible(false);
             return String.valueOf(v);
         } catch (IllegalAccessException e) {
             throw new SCRedisRuntimeException(e);
@@ -121,7 +125,7 @@ public abstract class AbstractCacheServiceImpl<T,S extends Serializable> impleme
     }
 
     @Override
-    public T getByPid(S id) {
+    public T getT(S id) {
         Nil nil = new Nil();
         String key = keyPrefix + id;
         T t = redisTemplate.getEntity(key, nil);
@@ -141,7 +145,8 @@ public abstract class AbstractCacheServiceImpl<T,S extends Serializable> impleme
     }
 
     @Override
-    public void removeByPid(S id) {
+    public void removeT(T t) {
+        String id = getId(t);
         String key = keyPrefix + id;
         boolean result = redisTemplate.delEntity(key);
         CacheAssert.isOk(result);
@@ -166,7 +171,6 @@ public abstract class AbstractCacheServiceImpl<T,S extends Serializable> impleme
         listAdd(key, id, 0);
     }
 
-
     @Override
     public void listAdd(String key, List<T> list, long second) {
         boolean result = this.redisTemplate.addList(key, list, second > 0 ? second : null);
@@ -180,14 +184,12 @@ public abstract class AbstractCacheServiceImpl<T,S extends Serializable> impleme
 
     @Override
     public void listDel(String key) {
-        boolean result = this.redisTemplate.cleanList(key);
-        CacheAssert.isOk(result);
+        CacheAssert.isOk(this.redisTemplate.cleanList(key));
     }
 
     @Override
     public void listRmv(String key, S id) {
-        boolean result = this.redisTemplate.rmvList(key, id);
-        CacheAssert.isOk(result);
+        CacheAssert.isOk(this.redisTemplate.rmvList(key, id));
     }
 
     @Override
@@ -215,15 +217,15 @@ public abstract class AbstractCacheServiceImpl<T,S extends Serializable> impleme
     }
 
     @Override
-    public void mapRmv(String key, Serializable id) {
-        boolean result = this.redisTemplate.mapRmv(key, String.valueOf(id));
+    public void mapRmv(String key, T t) {
+        String id = getId(t);
+        boolean result = this.redisTemplate.mapRmv(key, id);
         CacheAssert.isOk(result);
     }
 
     @Override
     public void mapDel(String key) {
-        boolean result = this.redisTemplate.mapClean(key);
-        CacheAssert.isOk(result);
+        CacheAssert.isOk(this.redisTemplate.mapClean(key));
     }
 
     @Override
@@ -231,7 +233,10 @@ public abstract class AbstractCacheServiceImpl<T,S extends Serializable> impleme
         return this.redisTemplate.findFromMap(key, batchSize);
     }
 
-    @Override
+
+
+
+   /* @Override
     public void increment(String key, long second) {
         boolean result = this.redisTemplate.incrementLong(key, second > 0 ? second : null);
         CacheAssert.isOk(result);
@@ -246,5 +251,5 @@ public abstract class AbstractCacheServiceImpl<T,S extends Serializable> impleme
     @Override
     public Long getNum(String key) {
         return this.redisTemplate.getNum(key);
-    }
+    }*/
 }

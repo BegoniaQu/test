@@ -2,10 +2,13 @@ package com.yc.fresh.busi.outer;
 
 import com.yc.fresh.busi.cache.SaleGoodsCacheService;
 import com.yc.fresh.busi.cache.ShopCarCacheService;
+import com.yc.fresh.busi.enums.GoodsStateEnum;
 import com.yc.fresh.common.exception.SCApiRuntimeException;
 import com.yc.fresh.service.entity.GoodsSaleInfo;
 import com.yc.fresh.service.entity.ShoppingCar;
+import com.yc.fresh.service.enums.SaleGoodsStatusEnum;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 import java.util.List;
 
@@ -31,18 +34,21 @@ public class ShopCarManager {
     }
 
 
-    public void populate(ShoppingCar t) {
-        GoodsSaleInfo goodsSaleInfo = saleGoodsCacheService.getByPid(t.getGoodsId());
-        if (goodsSaleInfo == null) {
-            throw new SCApiRuntimeException("该商品下架啦");
+    public int populate(ShoppingCar t) {
+        GoodsSaleInfo goodsSaleInfo = saleGoodsCacheService.getT(t.getGoodsId());
+        Assert.notNull(goodsSaleInfo, "illegal request");
+        if (goodsSaleInfo.getStatus() != SaleGoodsStatusEnum.SALEABLE.getV()) {
+            return GoodsStateEnum.gdDown.getState();
         }
         if (goodsSaleInfo.getInventory() <= 0) {
-            throw new SCApiRuntimeException("该商品卖完啦");
+            //remove(t);//从购物车移除
+            return GoodsStateEnum.saleOut.getState();
         }
         boolean isOk = shopCarCacheService.populateCar(t);
         if (!isOk) {
             throw new SCApiRuntimeException();
         }
+        return GoodsStateEnum.ok.getState();
     }
 
     public void remove(ShoppingCar t) {

@@ -38,7 +38,8 @@ public class SkuConvertor {
 
     private static String dealName(String name) {
         return name.replaceAll("（", "(").
-                replaceAll("）", ")");
+                replaceAll("）", ")").
+                replaceAll("\\s", ""); //空格
     }
 
     public static SkuInfo convert2Entity(SkuEditReqBean reqBean) {

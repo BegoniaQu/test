@@ -8,6 +8,7 @@ import com.yc.fresh.common.utils.KeyUtils;
 import com.yc.fresh.service.entity.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -33,6 +34,9 @@ public class UserVerifier {
     public UserInfo verify(HttpServletRequest request) {
         String token = request.getHeader("tk");
         String str = (String)request.getAttribute("user");
+        if (StringUtils.isEmpty(str)) {
+            throw new SCUnAuthorizedRuntimeException("request forbidden");
+        }
         request.removeAttribute("user"); //获取后移除
         Long userId = KeyUtils.getUserId(str);
         UserInfo userInfo = customerManager.get(userId);

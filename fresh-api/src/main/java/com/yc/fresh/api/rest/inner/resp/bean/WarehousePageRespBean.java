@@ -48,4 +48,6 @@ public class WarehousePageRespBean {
     @ApiModelProperty(value = "创建时间")
     private String createTime;
 
+    @ApiModelProperty(value = "配送费")
+    private BigDecimal deliveryFee;
 }

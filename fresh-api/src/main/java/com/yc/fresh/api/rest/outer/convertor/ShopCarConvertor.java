@@ -1,4 +1,4 @@
-package com.yc.fresh.api.rest.inner.convertor;
+package com.yc.fresh.api.rest.outer.convertor;
 
 import com.yc.fresh.api.rest.outer.req.bean.ShopCarAddReqBean;
 import com.yc.fresh.api.rest.outer.resp.bean.ShopCarRespBean;

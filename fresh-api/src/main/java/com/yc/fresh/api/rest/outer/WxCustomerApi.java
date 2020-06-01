@@ -47,9 +47,14 @@ public class WxCustomerApi {
         this.distributedLock = distributedLock;
     }
 
+    private void checkMobile(String mobile) {
+        Assert.isTrue(mobile.length() == 11, "无效的号码");
+    }
+
     @PostMapping("/reg")
     @ApiOperation(value="注册", produces=APPLICATION_JSON_VALUE, response = RegisterRespBean.class, httpMethod = "POST")
     public RegisterRespBean register(@Valid @RequestBody RegisterReqBean reqBean, HttpServletRequest request) {
+        checkMobile(reqBean.getMobile());
         String openid = (String)request.getAttribute("openid");
         String lockName = LockNameBuilder.buildOpenid(openid);
         LockProxy lock = distributedLock.lock(lockName);
@@ -57,10 +62,10 @@ public class WxCustomerApi {
         UserInfo t = customerManager.get(openid);
         Assert.isTrue(t == null, "duplicated registration"); //是否注册过
         t = CustomerConvertor.convert2Entity(reqBean, openid);
-        customerManager.doRegister(t);
-        RegisterRespBean respBean = CustomerConvertor.convert2Bean(t.getUserId());
-        customerManager.updateTk(t.getUserId(), respBean.getTk());
+        String tk = customerManager.doRegister(t);
         lock.release();
+        RegisterRespBean respBean = new RegisterRespBean();
+        respBean.setTk(tk);
        return respBean;
     }
 

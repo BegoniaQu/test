@@ -22,7 +22,11 @@ public class UserCacheService extends AbstractCacheServiceImpl<UserInfo, Long> {
         super(redisTemplate, userInfoIService);
     }
 
-
+    /**
+     * TODO 此处还可以优化, 因为如果恶意调用的话，每次都会去查数据库
+     * @param openid
+     * @return
+     */
     public UserInfo getByOpenId(String openid) {
         String key = "openid:" + openid;
         UserInfo u = this.redisTemplate.getEntity(key, null);

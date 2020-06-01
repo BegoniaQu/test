@@ -97,7 +97,11 @@ public class RedisTemplate {
             RBuckets buckets = redissonClient.getBuckets();
             Map<String, T> map = buckets.get(keys.toArray(new String[0]));
             for (Map.Entry<String, T> stringTEntry : map.entrySet()) {
-                list.add(stringTEntry.getValue());
+                T t = stringTEntry.getValue();
+                if (t == null) {
+                    continue;
+                }
+                list.add(t);
             }
         } catch (Exception e) {
             log.error("redis: getEntitys error",e);

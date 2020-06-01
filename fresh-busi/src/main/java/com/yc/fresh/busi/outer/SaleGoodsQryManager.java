@@ -4,10 +4,12 @@ import com.yc.fresh.busi.cache.SaleGoodsPicCacheService;
 import com.yc.fresh.busi.cache.SaleGoodsCacheService;
 import com.yc.fresh.service.entity.GoodsSaleInfo;
 import com.yc.fresh.service.entity.GoodsSalePic;
+import com.yc.fresh.service.enums.SaleGoodsStatusEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by quy on 2020/4/20.
@@ -27,7 +29,12 @@ public class SaleGoodsQryManager {
 
 
     public List<GoodsSaleInfo> findSaleGoods(String warehouseCode, Integer fCategoryId) {
-        return saleGoodsCacheService.findList(warehouseCode, fCategoryId);
+        List<GoodsSaleInfo> list = saleGoodsCacheService.findList(warehouseCode, fCategoryId);
+        //因为当其他地方调用getT时 内存中可能会出现非可售状态的商品
+        return list.stream().
+                filter(t->t.getInventory() > 0).
+                filter(t->t.getStatus() == SaleGoodsStatusEnum.SALEABLE.getV()).
+                collect(Collectors.toList());
     }
 
     public List<GoodsSaleInfo> findSaleGoods(List<String> goodsIds) {
@@ -35,14 +42,14 @@ public class SaleGoodsQryManager {
     }
 
     public GoodsSaleInfo getByGoodsId(String goodsId) {
-        return saleGoodsCacheService.getByPid(goodsId);
+        return saleGoodsCacheService.getT(goodsId);
     }
 
     public List<GoodsSalePic> findSaleGdPics(String goodsId) {
         return saleGoodsPicCacheService.findPics(goodsId);
     }
 
-    public List<GoodsSaleInfo> doSearch(String name) {
-        return saleGoodsCacheService.search(name);
+    public List<GoodsSaleInfo> doSearch(String name, String warehouseCode) {
+        return saleGoodsCacheService.search(name, warehouseCode);
     }
 }

@@ -55,4 +55,16 @@ public class WarehouseEditReqBean {
     @ApiModelProperty(value = "操作人", required = true)
     @NotBlank
     private String operator;
+
+    @ApiModelProperty(value = "仓库地址纬度", required = true)
+    @NotBlank
+    private String locationX;
+
+    @ApiModelProperty(value = "仓库地址经度", required = true)
+    @NotBlank
+    private String locationY;
+
+    @ApiModelProperty(value = "配送费", required = true)
+    @NotNull
+    private BigDecimal deliveryFee;
 }

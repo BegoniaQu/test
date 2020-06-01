@@ -38,7 +38,7 @@ public class SaleGoodsCacheService extends AbstractCacheServiceImpl<GoodsSaleInf
             log.error("{} mapping {} cache failed, so save to db", key, t.getGoodsId()); //TODO 失败补偿
         }
         //name 搜索用
-        key = getNameKey(t.getGoodsName());
+        key = getNameKey(t.getWarehouseCode(), t.getGoodsName());
         try {
             this.set(key, t.getGoodsId());
         } catch (Exception e) {
@@ -46,12 +46,12 @@ public class SaleGoodsCacheService extends AbstractCacheServiceImpl<GoodsSaleInf
         }
     }
 
-    private String getNameKey(String goodsName) {
+    private String getNameKey(String warehouseCode, String goodsName) {
         String[] nameArr = goodsName.split(" ");
         String parName = nameArr[0];
 //        String str = toSingleHash(parName);
 //        return RedisKeyUtils.getSaleGdSearch(str);
-        return RedisKeyUtils.getSaleGdSearch(parName);
+        return RedisKeyUtils.getSaleGdSearch(warehouseCode, parName);
     }
 
     @Deprecated
@@ -65,7 +65,7 @@ public class SaleGoodsCacheService extends AbstractCacheServiceImpl<GoodsSaleInf
     }
 
     public void unCache(GoodsSaleInfo t) {
-        this.removeByPid(t.getGoodsId()); //确保先移除信息
+        this.removeT(t); //确保先移除信息
         //rmv mapping
         String key = RedisKeyUtils.getWarehouseFc2List(t.getWarehouseCode(), t.getFCategoryId());
         try {
@@ -74,7 +74,7 @@ public class SaleGoodsCacheService extends AbstractCacheServiceImpl<GoodsSaleInf
             log.error("{} mapping {} unCache failed, so save to db", key, t.getGoodsId()); //TODO 失败补偿
         }
         //
-        key = getNameKey(t.getGoodsName());
+        key = getNameKey(t.getWarehouseCode(), t.getGoodsName());
         try {
             this.del(key);
         } catch (Exception e) {
@@ -86,8 +86,7 @@ public class SaleGoodsCacheService extends AbstractCacheServiceImpl<GoodsSaleInf
     public List<GoodsSaleInfo> findList(String warehouseCode, Integer fCategoryId) {
         String key = RedisKeyUtils.getWarehouseFc2List(warehouseCode, fCategoryId);
         List<String> saleGoodsIds = this.findS(key);
-        List<GoodsSaleInfo> saleInfos = batchFind(saleGoodsIds);
-        return saleInfos;
+        return batchFind(saleGoodsIds);
     }
 
     private List<GoodsSaleInfo> batchFind(List<String> saleGoodsIds) {
@@ -125,11 +124,11 @@ public class SaleGoodsCacheService extends AbstractCacheServiceImpl<GoodsSaleInf
     }
 
 
-    public List<GoodsSaleInfo> search(String name) {
+    public List<GoodsSaleInfo> search(String name, String warehouseCode) {
         //String str = toSingleHash(name);
         String str = name;
         String saleGdSearch = RedisKeyUtils.saleGdSearch;
-        String pattern = saleGdSearch + "*" + str + "*";
+        String pattern = saleGdSearch + warehouseCode + RedisKeyUtils.delimiter + "*" + str + "*";
         List<String> goodsIds = this.redisTemplate.keyLike(pattern);
         return batchFind(goodsIds);
     }

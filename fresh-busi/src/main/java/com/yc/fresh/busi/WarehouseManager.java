@@ -3,6 +3,7 @@ package com.yc.fresh.busi;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.yc.fresh.busi.cache.WarehouseCacheService;
 import com.yc.fresh.common.ServiceAssert;
 import com.yc.fresh.common.utils.DateUtils;
 import com.yc.fresh.service.IWarehouseService;
@@ -23,10 +24,12 @@ import java.util.List;
 public class WarehouseManager {
 
     private final IWarehouseService warehouseService;
+    private final WarehouseCacheService warehouseCacheService;
 
     @Autowired
-    public WarehouseManager(IWarehouseService warehouseService) {
+    public WarehouseManager(IWarehouseService warehouseService, WarehouseCacheService warehouseCacheService) {
         this.warehouseService = warehouseService;
+        this.warehouseCacheService = warehouseCacheService;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -43,6 +46,8 @@ public class WarehouseManager {
         wrapper.eq(Warehouse.CODE, code);
         boolean isOk = this.warehouseService.update(t, wrapper);
         ServiceAssert.isOk(isOk, "update warehouse failed");
+        //暂且先移除所有,比较方便
+        this.warehouseCacheService.removeAll();
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -54,9 +59,10 @@ public class WarehouseManager {
         UpdateWrapper<Warehouse> wrapper = new UpdateWrapper<>();
         wrapper.eq(Warehouse.CODE, warehouseCode);
         wrapper.eq(Warehouse.STATUS, WarehouseStatusEnum.AVAILABLE.getV());
-
         boolean isOk = this.warehouseService.update(t, wrapper);
         ServiceAssert.isOk(isOk, "close warehouse failed");
+        //暂且先移除所有,比较方便
+        this.warehouseCacheService.removeAll();
     }
 
     public Warehouse getByCode(String code) {

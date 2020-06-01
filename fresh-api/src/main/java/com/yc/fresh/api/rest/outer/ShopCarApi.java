@@ -1,8 +1,9 @@
 package com.yc.fresh.api.rest.outer;
 
 import com.yc.fresh.api.component.UserVerifier;
-import com.yc.fresh.api.rest.inner.convertor.ShopCarConvertor;
+import com.yc.fresh.api.rest.outer.convertor.ShopCarConvertor;
 import com.yc.fresh.api.rest.outer.req.bean.ShopCarAddReqBean;
+import com.yc.fresh.api.rest.outer.resp.bean.ShopCarOperationRespBean;
 import com.yc.fresh.api.rest.outer.resp.bean.ShopCarRespBean;
 import com.yc.fresh.busi.outer.SaleGoodsQryManager;
 import com.yc.fresh.busi.outer.ShopCarManager;
@@ -45,7 +46,7 @@ public class ShopCarApi {
 
 
     @GetMapping("list")
-    @ApiOperation(value = "我的购物车", produces = APPLICATION_JSON_VALUE, httpMethod = "GET")
+    @ApiOperation(value = "我的购物车", produces = APPLICATION_JSON_VALUE,response = ShopCarRespBean.class, responseContainer = "List", httpMethod = "GET")
     public List<ShopCarRespBean> list(HttpServletRequest request) {
         UserInfo user = userVerifier.verify(request);
         List<ShoppingCar> shoppingCars = this.shopCarManager.find(user.getUserId());
@@ -59,12 +60,15 @@ public class ShopCarApi {
 
 
     @PostMapping("/fill")
-    @ApiOperation(value = "加入购物车", produces = APPLICATION_JSON_VALUE, httpMethod = "POST")
-    public void populate(@Valid @RequestBody ShopCarAddReqBean reqBean, HttpServletRequest request) {
+    @ApiOperation(value = "购物车数量增减", produces = APPLICATION_JSON_VALUE, response = ShopCarOperationRespBean.class, httpMethod = "POST")
+    public ShopCarOperationRespBean fill(@Valid @RequestBody ShopCarAddReqBean reqBean, HttpServletRequest request) {
         UserInfo user = userVerifier.verify(request);
         Assert.isTrue(reqBean.getNum() != 0, "invalid request");
         ShoppingCar t = ShopCarConvertor.convert2Entity(user.getUserId(), reqBean);
-        this.shopCarManager.populate(t);
+        int result = this.shopCarManager.populate(t);
+        ShopCarOperationRespBean respBean = new ShopCarOperationRespBean();
+        respBean.setResult(result);
+        return respBean;
     }
 
     @DeleteMapping("/{goodsId}/rm")
