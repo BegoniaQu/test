@@ -3,6 +3,7 @@ package com.yc.fresh.api.rest.outer.convertor;
 import com.yc.fresh.api.rest.outer.resp.bean.SaleGdBriefRespVO;
 import com.yc.fresh.api.rest.outer.resp.bean.SaleGdDetailVO;
 import com.yc.fresh.api.rest.outer.resp.bean.SaleGdSearchRespBean;
+import com.yc.fresh.busi.enums.GoodsStateEnum;
 import com.yc.fresh.service.entity.GdCategory;
 import com.yc.fresh.service.entity.GoodsSaleInfo;
 import com.yc.fresh.service.entity.GoodsSalePic;
@@ -43,6 +44,9 @@ public class SaleGoodsConvertor {
 
     public static SaleGdDetailVO convert(GoodsSaleInfo goodsSaleInfo, List<GoodsSalePic> pics) {
         SaleGdDetailVO vo = new SaleGdDetailVO();
+        vo.setGoodsId(goodsSaleInfo.getGoodsId());
+        int result = GoodsStateEnum.check(goodsSaleInfo);
+        vo.setState(result);
         vo.setDescrPath(goodsSaleInfo.getDescrPath());
         List<String> urls = new ArrayList<>();
         vo.setPics(urls);

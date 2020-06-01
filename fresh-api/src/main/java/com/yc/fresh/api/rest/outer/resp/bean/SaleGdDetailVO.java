@@ -19,8 +19,13 @@ import java.util.List;
 @ApiModel("商品详情")
 public class SaleGdDetailVO {
 
+    @ApiModelProperty("商品ID")
+    private String goodsId;
+
     @ApiModelProperty("图片")
     private List<String> pics;
     @ApiModelProperty("文案")
     private String descrPath;
+    @ApiModelProperty("商品状况")
+    private int state;
 }

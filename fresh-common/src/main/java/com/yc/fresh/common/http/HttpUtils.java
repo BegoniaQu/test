@@ -88,7 +88,9 @@ public class HttpUtils {
             @Override
             public void onFailure(Call call, IOException e) {
                 String str = e.getMessage();
-                handler.handle(new FailedContent(url, content, str));
+                if (handler != null) {
+                    handler.handle(new FailedContent(url, content, str));
+                }
                 log.error("url: {}, ctn: {} doPost exception: {}", url, content, str);
             }
             @Override
@@ -97,7 +99,9 @@ public class HttpUtils {
                 if (response.isSuccessful()){
                     log.info("url: {}, ctn: {} doPost ok, resp: {}", url, content, str);
                 }else{
-                    handler.handle(new FailedContent(url, content, response.body().toString()));
+                    if (handler != null){
+                        handler.handle(new FailedContent(url, content, response.body().toString()));
+                    }
                     log.error("url: {}, ctn: {} doPost failed, resp: {}", url, content, str);
                 }
             }

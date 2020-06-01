@@ -2,6 +2,7 @@ package com.yc.fresh.api.rest.outer.convertor;
 
 import com.yc.fresh.api.rest.outer.req.bean.ShopCarAddReqBean;
 import com.yc.fresh.api.rest.outer.resp.bean.ShopCarRespBean;
+import com.yc.fresh.busi.enums.GoodsStateEnum;
 import com.yc.fresh.service.entity.GoodsSaleInfo;
 import com.yc.fresh.service.entity.ShoppingCar;
 
@@ -41,6 +42,9 @@ public class ShopCarConvertor {
             respBean.setRawPrice(goodsSaleInfo.getRawPrice());
             respBean.setSalePrice(goodsSaleInfo.getSalePrice());
             respBean.setStockNum(goodsSaleInfo.getInventory());
+            respBean.setState(GoodsStateEnum.ok.getState());
+            int result = GoodsStateEnum.check(goodsSaleInfo);
+            respBean.setState(result);
             respBeans.add(respBean);
         }
         return respBeans;
