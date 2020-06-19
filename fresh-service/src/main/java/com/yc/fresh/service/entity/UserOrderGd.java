@@ -15,7 +15,7 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author Quy
- * @since 2020-04-09
+ * @since 2020-06-15
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -73,6 +73,11 @@ public class UserOrderGd implements Serializable {
     private BigDecimal costPrice;
 
     /**
+     * 绑定数量
+     */
+    private Integer bundles;
+
+    /**
      * 计量值
      */
     private Integer saleCv;
@@ -108,6 +113,11 @@ public class UserOrderGd implements Serializable {
     private BigDecimal refundAmt;
 
     /**
+     * 备注
+     */
+    private String remark;
+
+    /**
      * 创建时间
      */
     private LocalDateTime createTime;
@@ -138,6 +148,8 @@ public class UserOrderGd implements Serializable {
 
     public static final String COST_PRICE = "cost_price";
 
+    public static final String BUNDLES = "bundles";
+
     public static final String SALE_CV = "sale_cv";
 
     public static final String UNIT = "unit";
@@ -151,6 +163,8 @@ public class UserOrderGd implements Serializable {
     public static final String REAL_AMT = "real_amt";
 
     public static final String REFUND_AMT = "refund_amt";
+
+    public static final String REMARK = "remark";
 
     public static final String CREATE_TIME = "create_time";
 

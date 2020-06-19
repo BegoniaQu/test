@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.yc.fresh.busi.cache.SkuInventoryCacheService;
 import com.yc.fresh.service.enums.SkuStatusEnum;
 import com.yc.fresh.busi.validator.SkuValidator;
 import com.yc.fresh.busi.validator.WarehouseStockValidator;
@@ -38,18 +39,18 @@ public class WarehouseStockManager {
     private final WarehouseValidator warehouseValidator;
     private final SkuValidator skuValidator;
     private final WarehouseStockValidator warehouseStockValidator;
-    private final IGoodsSaleInfoService goodsSaleInfoService;
     private final ISkuInfoService skuInfoService;
+    private final SkuInventoryCacheService skuInventoryCacheService;
 
 
     @Autowired
-    public WarehouseStockManager(IWarehouseStockService warehouseStockService, WarehouseValidator warehouseValidator, SkuValidator skuValidator, WarehouseStockValidator warehouseStockValidator, IGoodsSaleInfoService goodsSaleInfoService, ISkuInfoService skuInfoService) {
+    public WarehouseStockManager(IWarehouseStockService warehouseStockService, WarehouseValidator warehouseValidator, SkuValidator skuValidator, WarehouseStockValidator warehouseStockValidator, ISkuInfoService skuInfoService, SkuInventoryCacheService skuInventoryCacheService) {
         this.warehouseStockService = warehouseStockService;
         this.warehouseValidator = warehouseValidator;
         this.skuValidator = skuValidator;
         this.warehouseStockValidator = warehouseStockValidator;
-        this.goodsSaleInfoService = goodsSaleInfoService;
         this.skuInfoService = skuInfoService;
+        this.skuInventoryCacheService = skuInventoryCacheService;
     }
 
     /**
@@ -69,25 +70,17 @@ public class WarehouseStockManager {
         boolean flag = this.warehouseStockService.save(t);
         ServiceAssert.isOk(flag, "add warehouseStock failed");
         //更新sku status
-        if (skuInfo.getStatus() == SkuStatusEnum.unuse.getV()) {
-            SkuInfo skuUpt = new SkuInfo();
-            skuUpt.setSkuId(t.getSkuId());
-            skuUpt.setStatus(SkuStatusEnum.used.getV());
-            skuUpt.setLastModifiedTime(DateUtils.getCurrentDate());
-            this.skuInfoService.updateById(skuUpt);
-        }
+        this.skuInfoService.updateStatusToUsed(skuInfo);
+        //cache
+        this.skuInventoryCacheService.optInventory(t.getWarehouseCode(), t.getSkuId(), t.getNum());
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void doDel(String warehouseCode, Long skuId) {
         WarehouseStock t = warehouseStockValidator.validate(warehouseCode, skuId);
-        QueryWrapper<GoodsSaleInfo> queryWrapper = Wrappers.query();
-        queryWrapper.eq(GoodsSaleInfo.WAREHOUSE_CODE, warehouseCode);
-        queryWrapper.eq(GoodsSaleInfo.SKU_ID, skuId);
-        queryWrapper.gt(GoodsSaleInfo.STATUS, SaleGoodsStatusEnum.INVALID.getV());
-        List<GoodsSaleInfo> goodsSaleInfos = this.goodsSaleInfoService.list(queryWrapper);
-        Assert.isTrue(CollectionUtils.isEmpty(goodsSaleInfos), "已添加售卖商品, 无法删除");
         this.warehouseStockService.removeById(t.getId());
+        this.skuInventoryCacheService.clearInventory(warehouseCode, skuId);
+
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -106,6 +99,10 @@ public class WarehouseStockManager {
         updateWrapper.eq(WarehouseStock.ID, t.getId());
         boolean flag = this.warehouseStockService.update(updateWrapper);
         ServiceAssert.isOk(flag, "update warehouseStock failed");
+        //
+        if (num != null) {
+            this.skuInventoryCacheService.optInventory(warehouseCode, skuId, num);
+        }
     }
 
     @Transactional(readOnly = true)

@@ -10,7 +10,6 @@ import com.yc.fresh.api.rest.inner.resp.bean.GoodsPageRespBean;
 import com.yc.fresh.api.rest.inner.resp.bean.GoodsPicRespBean;
 import com.yc.fresh.busi.GdCategoryManager;
 import com.yc.fresh.busi.SaleGoodsManager;
-import com.yc.fresh.busi.WarehouseManager;
 import com.yc.fresh.busi.id.IdGenerator;
 import com.yc.fresh.common.PageResult;
 import com.yc.fresh.common.cache.lock.impl.LockProxy;
@@ -18,7 +17,6 @@ import com.yc.fresh.common.lock.DistributedLock;
 import com.yc.fresh.service.entity.GdCategory;
 import com.yc.fresh.service.entity.GoodsSaleInfo;
 import com.yc.fresh.service.entity.GoodsSalePic;
-import com.yc.fresh.service.entity.Warehouse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -48,21 +46,19 @@ public class GoodsSaleController {
     private final DistributedLock<LockProxy> distributedLock;
     private final IdGenerator idGenerator;
     private final GdCategoryManager gdCategoryManager;
-    private final WarehouseManager warehouseManager;
 
     @Autowired
-    public GoodsSaleController(SaleGoodsManager saleGoodsManager, DistributedLock<LockProxy> distributedLock, IdGenerator idGenerator, GdCategoryManager gdCategoryManager, WarehouseManager warehouseManager) {
+    public GoodsSaleController(SaleGoodsManager saleGoodsManager, DistributedLock<LockProxy> distributedLock, IdGenerator idGenerator, GdCategoryManager gdCategoryManager) {
         this.saleGoodsManager = saleGoodsManager;
         this.distributedLock = distributedLock;
         this.idGenerator = idGenerator;
         this.gdCategoryManager = gdCategoryManager;
-        this.warehouseManager = warehouseManager;
     }
 
     @PostMapping(value = "/add")
     @ApiOperation(value = "增加售卖商品", produces = APPLICATION_JSON_VALUE, httpMethod = "POST")
     public void add(@Valid @RequestBody GoodsAddReqBean reqBean) {
-        String lockName = LockNameBuilder.buildStock(reqBean.getWarehouseCode(), String.valueOf(reqBean.getSkuId()));
+        String lockName = LockNameBuilder.buildSku(reqBean.getSkuId());
         LockProxy lock = distributedLock.lock(lockName);
         Assert.notNull(lock, "资源占用中, 请稍后重试");
         GoodsSaleInfo goodsSaleInfo = SaleGoodsConvertor.convert2Entity(reqBean);
@@ -75,7 +71,7 @@ public class GoodsSaleController {
     @PostMapping(value = "/switch")
     @ApiOperation(value = "上下架", produces = APPLICATION_JSON_VALUE, httpMethod = "POST")
     public void takeOnOrOff(@Valid @RequestBody GoodsOnOrOffReqBean reqBean) {
-        saleGoodsManager.updateStatus(reqBean.getGoodsId(), reqBean.getAction());
+        saleGoodsManager.doTakeOnOrOff(reqBean.getGoodsId(), reqBean.getAction());
     }
 
     @PostMapping(value = "/discard")
@@ -93,8 +89,8 @@ public class GoodsSaleController {
         GdCategory par = gdCategoryManager.getById(goods.getFCategoryId());
         GdCategory sub = gdCategoryManager.getById(goods.getSCategoryId());
         //仓库
-        Warehouse warehouse = warehouseManager.getByCode(goods.getWarehouseCode());
-        return SaleGoodsConvertor.convert2DetailBean(goods, par, sub, warehouse);
+        //Warehouse warehouse = warehouseManager.getByCode(goods.getWarehouseCode());
+        return SaleGoodsConvertor.convert2DetailBean(goods, par, sub);
     }
 
 
@@ -104,9 +100,9 @@ public class GoodsSaleController {
         GoodsSaleInfo goodsSaleInfo = SaleGoodsConvertor.convert2Entity(reqBean);
         GoodsSaleInfo dbOne = this.saleGoodsManager.doGet(reqBean.getGoodsId());
         Assert.notNull(dbOne, "invalid request");
-        String lockName = LockNameBuilder.buildStock(dbOne.getWarehouseCode(), String.valueOf(dbOne.getSkuId()));
+        /*String lockName = LockNameBuilder.buildSku(dbOne.getSkuId());
         LockProxy lock = distributedLock.lock(lockName);
-        Assert.notNull(lock, "资源占用中, 请稍后重试");
+        Assert.notNull(lock, "资源占用中, 请稍后重试");*/
         saleGoodsManager.doUpdate(goodsSaleInfo);
     }
 
@@ -115,14 +111,14 @@ public class GoodsSaleController {
     @ApiOperation(value="售卖商品列表", produces=APPLICATION_JSON_VALUE, response = GoodsPageRespBean.class, httpMethod = "GET")
     public PageResult<GoodsPageRespBean> list(GoodsPageQryBean qryBean) {
         IPage<GoodsSaleInfo> iPage = new Page<>(qryBean.getPn(), qryBean.getPs());
-        IPage<GoodsSaleInfo> page = this.saleGoodsManager.page(qryBean.getWarehouseCode(), qryBean.getGoodsName(), qryBean.getFirstCategoryId(), qryBean.getSecondCategoryId(), qryBean.getStatus(), iPage);
+        IPage<GoodsSaleInfo> page = this.saleGoodsManager.page(qryBean.getGoodsName(), qryBean.getFirstCategoryId(), qryBean.getSecondCategoryId(), qryBean.getStatus(), iPage);
         //分类
         List<GdCategory> fCategories = gdCategoryManager.query(0, null); //查一级分类
         List<Integer> parentIds = fCategories.stream().map(t->t.getId()).collect(Collectors.toList());
         Map<Integer, List<GdCategory>> subMap = gdCategoryManager.querySubs(parentIds);
         //仓库
-        List<Warehouse> warehouses = warehouseManager.query(null);
-        return SaleGoodsConvertor.convert2PageBean(page, fCategories, subMap, warehouses);
+        //List<Warehouse> warehouses = warehouseManager.query(null);
+        return SaleGoodsConvertor.convert2PageBean(page, fCategories, subMap);
     }
 
 

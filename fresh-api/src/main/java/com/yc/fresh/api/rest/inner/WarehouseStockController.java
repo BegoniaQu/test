@@ -10,6 +10,7 @@ import com.yc.fresh.api.rest.inner.resp.bean.StockPageRespBean;
 import com.yc.fresh.busi.GdCategoryManager;
 import com.yc.fresh.busi.WarehouseManager;
 import com.yc.fresh.busi.WarehouseStockManager;
+import com.yc.fresh.busi.outer.InventoryManger;
 import com.yc.fresh.common.PageResult;
 import com.yc.fresh.common.cache.lock.impl.LockProxy;
 import com.yc.fresh.common.lock.DistributedLock;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -79,12 +81,7 @@ public class WarehouseStockController {
     @PostMapping(value = "/sku/del")
     @ApiOperation(value="删除", produces=APPLICATION_JSON_VALUE, httpMethod = "POST")
     public void del(@Valid @RequestBody StockDelReqBean reqBean) {
-        //加锁 warehouseCode + skuId  还有就是在添加goodsSaleInfo时，也要加一样的锁 不然无法保证废弃时没有同时添加goodsSaleInfo
-        String lockName = LockNameBuilder.buildStock(reqBean.getWarehouseCode(), String.valueOf(reqBean.getSkuId()));
-        LockProxy lock = distributedLock.lock(lockName);
-        Assert.notNull(lock, "资源占用中, 请稍后重试");
         this.warehouseStockManager.doDel(reqBean.getWarehouseCode(), reqBean.getSkuId());
-        lock.release();
     }
 
 

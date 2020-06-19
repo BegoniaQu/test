@@ -26,7 +26,7 @@ public class ShopCarConvertor {
         return t;
     }
 
-    public static List<ShopCarRespBean> convert2BeanList(List<ShoppingCar> shoppingCars, List<GoodsSaleInfo> goodsSaleInfos) {
+    public static List<ShopCarRespBean> convert2BeanList(List<ShoppingCar> shoppingCars, List<GoodsSaleInfo> goodsSaleInfos, Map<Long, Integer> inventoryMap) {
         List<ShopCarRespBean> respBeans = new ArrayList<>();
         Map<String, GoodsSaleInfo> goodsMap = goodsSaleInfos.stream().collect(Collectors.toMap(t -> t.getGoodsId(), t -> t));
         for (ShoppingCar shoppingCar : shoppingCars) {
@@ -41,10 +41,9 @@ public class ShopCarConvertor {
             respBean.setMPicPath(goodsSaleInfo.getMPicPath());
             respBean.setRawPrice(goodsSaleInfo.getRawPrice());
             respBean.setSalePrice(goodsSaleInfo.getSalePrice());
-            respBean.setStockNum(goodsSaleInfo.getInventory());
-            respBean.setState(GoodsStateEnum.ok.getState());
-            int result = GoodsStateEnum.check(goodsSaleInfo);
-            respBean.setState(result);
+            //库存
+            Integer inventory = inventoryMap.get(goodsSaleInfo.getSkuId());
+            respBean.setStockNum(inventory == null ? 0 : inventory);
             respBeans.add(respBean);
         }
         return respBeans;

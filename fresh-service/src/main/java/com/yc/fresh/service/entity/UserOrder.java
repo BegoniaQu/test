@@ -18,7 +18,7 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author Quy
- * @since 2020-04-09
+ * @since 2020-06-15
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -70,11 +70,6 @@ public class UserOrder implements Serializable {
      * 送货地址
      */
     private String address;
-
-    /**
-     * 购买商品总数量
-     */
-    private Integer goodsNum;
 
     /**
      * 0-待支付 1-待配送 2-配送中 3-待评价 4- 已完成 5-已取消
@@ -179,8 +174,6 @@ public class UserOrder implements Serializable {
     public static final String MOBILE = "mobile";
 
     public static final String ADDRESS = "address";
-
-    public static final String GOODS_NUM = "goods_num";
 
     public static final String STATUS = "status";
 

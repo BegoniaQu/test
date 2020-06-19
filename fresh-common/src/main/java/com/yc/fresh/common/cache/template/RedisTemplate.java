@@ -2,6 +2,8 @@ package com.yc.fresh.common.cache.template;
 
 import io.netty.channel.EventLoopGroup;
 import org.redisson.api.*;
+import org.redisson.client.codec.IntegerCodec;
+import org.redisson.client.codec.LongCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -363,14 +365,21 @@ public class RedisTemplate {
         }
     }
 
-    public boolean incrementLong(String key, Long second) {
+    /**
+     *
+     * @param key
+     * @param num 扣减时 为负数
+     * @param second
+     * @return
+     */
+    public boolean optNum(String key, int num, Long second) {
         boolean flag = true;
         RAtomicLong atomicLong = this.redissonClient.getAtomicLong(key);
         try {
-            atomicLong.incrementAndGet();
+            atomicLong.addAndGet(num);
         } catch (Exception e) {
             flag = false;
-            log.error("redis: incrementLong error", e);
+            log.error("redis: optNum error", e);
         }
         if (!flag) {
             return flag;
@@ -379,14 +388,17 @@ public class RedisTemplate {
         return flag;
     }
 
-    public boolean decrementLong(String key) {
+    public boolean clearNum(String key) {
         boolean flag = true;
+        RAtomicLong atomicLong = this.redissonClient.getAtomicLong(key);
         try {
-            RAtomicLong atomicLong = this.redissonClient.getAtomicLong(key);
-            atomicLong.decrementAndGet();
+            atomicLong.delete();
         } catch (Exception e) {
             flag = false;
-            log.error("redis: decrementLong error", e);
+            log.error("redis: clearNum error", e);
+        }
+        if (!flag) {
+            return flag;
         }
         return flag;
     }
@@ -401,6 +413,18 @@ public class RedisTemplate {
         return null;
     }
 
+    public Map<String, Integer> findNums(List<String> keys) {
+        if (CollectionUtils.isEmpty(keys)) {
+            return Collections.emptyMap();
+        }
+        try {
+            RBuckets buckets = redissonClient.getBuckets(new IntegerCodec()); //如果这里不用IntegerCodec,则数据转换的就是错误的
+            return buckets.get(keys.toArray(new String[0]));
+        } catch (Exception e) {
+            log.error("redis: findNums error",e);
+        }
+        return null;
+    }
 
 
     public RLock acquireDistLock(String lockName) {

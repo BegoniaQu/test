@@ -41,7 +41,7 @@ public class GoodsSaleInfo implements Serializable {
     /**
      * 仓库编码
      */
-    private String warehouseCode;
+    //private String warehouseCode;
 
     /**
      * sku编码
@@ -106,15 +106,12 @@ public class GoodsSaleInfo implements Serializable {
      */
     private LocalDateTime lastModifiedTime;
 
-    @TableField(exist = false)
-    private Integer inventory;
-
 
     public static final String GOODS_ID = "goods_id";
 
     public static final String GOODS_NAME = "goods_name";
 
-    public static final String WAREHOUSE_CODE = "warehouse_code";
+    //public static final String WAREHOUSE_CODE = "warehouse_code";
 
     public static final String SKU_ID = "sku_id";
 

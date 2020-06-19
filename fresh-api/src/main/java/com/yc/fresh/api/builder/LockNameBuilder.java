@@ -11,13 +11,13 @@ public class LockNameBuilder {
     public static final String delimiter = ":";
     public static final String openidLock = "openidLock:";
 
-    public static String buildStock(String... args) {
+    /*public static String buildStock(String... args) {
         StringBuilder sb = new StringBuilder(storeMutexLock);
         for (String arg : args) {
             sb.append(arg).append(delimiter);
         }
         return sb.substring(0, sb.lastIndexOf(delimiter));
-    }
+    }*/
 
     public static String buildSku(Long skuId) {
         return skuMutexLock + skuId;
@@ -28,6 +28,6 @@ public class LockNameBuilder {
     }
 
     public static void main(String[] args) {
-        System.out.println(LockNameBuilder.buildStock("hmd-021-01", "11002"));
+       // System.out.println(LockNameBuilder.buildStock("hmd-021-01", "11002"));
     }
 }

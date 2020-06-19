@@ -17,6 +17,7 @@ public class RedisKeyUtils {
     //private static final String shopCarGd2Num = "shopCarGd2Num:";
     public static final String saleGdSearch = "gdSearch:";
     public static final String warehseList = "warehouseList";
+    public static final String warehouseSkuInventory = "skuInventory:";
 
     public static final String delimiter = ":";
 
@@ -48,4 +49,13 @@ public class RedisKeyUtils {
     public static String getSaleGdSearch(String warehouseCode, String name) {
         return saleGdSearch + warehouseCode + delimiter + name;
     }
+
+    public static String getWarehouseSkuInventory(String warehouseCode, Long skuId) {
+        return warehouseSkuInventory + warehouseCode + delimiter + skuId;
+    }
+
+    public static Long splitSkuId(String skuInventoryKey) {
+        return Long.parseLong(skuInventoryKey.split("\\:")[2]);
+    }
+
 }

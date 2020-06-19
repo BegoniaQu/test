@@ -33,7 +33,7 @@ public abstract class AbstractCacheServiceImpl<T,S extends Serializable> impleme
     protected IService<T> dbService;
 
     protected long defaultLiveSecond = 86400*7;
-    private long nilLiveSecond = 30;// 30s
+    private long nilLiveSecond = 5;// 5s
 
 
 
@@ -82,7 +82,7 @@ public abstract class AbstractCacheServiceImpl<T,S extends Serializable> impleme
     }
 
     private int getANumber() {
-        return new Random().nextInt(100);
+        return new Random().nextInt(3600);
     }
 
 

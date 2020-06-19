@@ -13,4 +13,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface ISkuInfoService extends IService<SkuInfo> {
 
+    void updateStatusToUsed(SkuInfo t);
 }

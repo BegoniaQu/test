@@ -15,5 +15,6 @@ public class Test {
         SuperRespBean authenRespBean = new AuthenRespBean();
         System.out.println(authenRespBean instanceof SuperRespBean);
 
+        System.out.println(SuperRespBean.class.getName());
     }
 }

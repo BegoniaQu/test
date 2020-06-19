@@ -28,7 +28,7 @@ public class SaleGoodsConvertor {
     public static GoodsSaleInfo convert2Entity(GoodsAddReqBean reqBean) {
         LocalDateTime currentDate = DateUtils.getCurrentDate();
         GoodsSaleInfo goods = new GoodsSaleInfo();
-        goods.setWarehouseCode(reqBean.getWarehouseCode());
+        //goods.setWarehouseCode(reqBean.getWarehouseCode());
         goods.setSkuId(reqBean.getSkuId());
         goods.setGoodsName(reqBean.getGoodsName());
         goods.setMPicPath(reqBean.getMainPicPath());
@@ -61,15 +61,15 @@ public class SaleGoodsConvertor {
     }
 
 
-    public static PageResult<GoodsPageRespBean> convert2PageBean(IPage<GoodsSaleInfo> page, List<GdCategory> fCategories, Map<Integer, List<GdCategory>> sCategoryMap, List<Warehouse> warehouses) {
-        Map<String, Warehouse> warehouseMap = WarehouseConvertor.convert2Map(warehouses);
+    public static PageResult<GoodsPageRespBean> convert2PageBean(IPage<GoodsSaleInfo> page, List<GdCategory> fCategories, Map<Integer, List<GdCategory>> sCategoryMap) {
+        //Map<String, Warehouse> warehouseMap = WarehouseConvertor.convert2Map(warehouses);
         Map<Integer, GdCategory> fCategoryMap = GdCategoryConvertor.convert2Map(fCategories);
         List<GoodsPageRespBean> respBeans = new ArrayList<>();
-        String[] ignoreCol = new String[]{"warehouseName", "status", "category", "createTime", "lastModifiedTime"};
+        String[] ignoreCol = new String[]{"status", "category", "createTime", "lastModifiedTime"};
         for (GoodsSaleInfo one : page.getRecords()) {
             GoodsPageRespBean respBean = new GoodsPageRespBean();
             BeanUtils.copyProperties(one, respBean, ignoreCol);
-            respBean.setWarehouseName(warehouseMap.get(one.getWarehouseCode()).getName());
+            //respBean.setWarehouseName(warehouseMap.get(one.getWarehouseCode()).getName());
             respBean.setStatus(SaleGoodsStatusEnum.getName(one.getStatus()));
             //一级
             Integer fCategoryId = one.getFCategoryId();
@@ -86,11 +86,10 @@ public class SaleGoodsConvertor {
     }
 
 
-    public static GoodsDetailRespBean convert2DetailBean(GoodsSaleInfo goods, GdCategory parent, GdCategory sub, Warehouse warehouse) {
-        String[] ignoreCol = new String[]{"warehouseName", "category"};
+    public static GoodsDetailRespBean convert2DetailBean(GoodsSaleInfo goods, GdCategory parent, GdCategory sub) {
         GoodsDetailRespBean respBean = new GoodsDetailRespBean();
-        BeanUtils.copyProperties(goods, respBean, ignoreCol);
-        respBean.setWarehouseName(warehouse.getName());
+        BeanUtils.copyProperties(goods, respBean);
+        //respBean.setWarehouseName(warehouse.getName());
         respBean.setFCategory(parent.getName());
         respBean.setSCategory(sub.getName());
         return respBean;

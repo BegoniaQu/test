@@ -30,19 +30,41 @@ public class SaleGoodsCacheService extends AbstractCacheServiceImpl<GoodsSaleInf
         t.setLastModifiedTime(null);
         t.setCreateTime(null);
         this.add(t);
-        //add mapping
-        String key = RedisKeyUtils.getWarehouseFc2List(t.getWarehouseCode(), t.getFCategoryId());
+    }
+
+    public void addMapping(String warehouseCode, Integer fCategoryId, String goodsId) {
+        String key = RedisKeyUtils.getWarehouseFc2List(warehouseCode, fCategoryId);
         try {
-            this.listAdd(key, t.getGoodsId());
+            this.listAdd(key, goodsId);
         } catch (Exception e) {
-            log.error("{} mapping {} cache failed, so save to db", key, t.getGoodsId()); //TODO 失败补偿
+            log.error("{} mapping {} cache failed, so save to db", key, goodsId); //TODO 失败补偿
         }
-        //name 搜索用
-        key = getNameKey(t.getWarehouseCode(), t.getGoodsName());
+    }
+
+    public void unMapping(String warehouseCode, Integer fCategoryId, String goodsId) {
+        String key = RedisKeyUtils.getWarehouseFc2List(warehouseCode, fCategoryId);
         try {
-            this.set(key, t.getGoodsId());
+            this.listRmv(key, goodsId);
         } catch (Exception e) {
-            log.error("{} mapping {} cache failed, so skipped", key, t.getGoodsId()); //基于名称的搜索缓存操作失败就失败了
+            log.error("{} mapping {} unCache failed, so save to db", key, goodsId); //TODO 失败补偿
+        }
+    }
+
+    public void addNameBasedSearch(String warehouseCode, String goodsName, String goodsId) {
+        String key = getNameKey(warehouseCode, goodsName);
+        try {
+            this.set(key, goodsId);
+        } catch (Exception e) {
+            log.error("{} mapping {} cache failed, so skipped", key, goodsId); //基于名称的搜索缓存操作失败就失败了
+        }
+    }
+
+    public void removeNameBasedSearch(String warehouseCode, String goodsName) {
+        String key = getNameKey(warehouseCode, goodsName);
+        try {
+            this.del(key);
+        } catch (Exception e) {
+            log.error("removeNameBasedSearch {} failed, so skipped", key); //基于名称的搜索缓存操作失败就失败了
         }
     }
 
@@ -65,22 +87,7 @@ public class SaleGoodsCacheService extends AbstractCacheServiceImpl<GoodsSaleInf
     }
 
     public void unCache(GoodsSaleInfo t) {
-        this.removeT(t); //确保先移除信息
-        //rmv mapping
-        String key = RedisKeyUtils.getWarehouseFc2List(t.getWarehouseCode(), t.getFCategoryId());
-        try {
-            this.listRmv(key, t.getGoodsId());
-        } catch (Exception e) {
-            log.error("{} mapping {} unCache failed, so save to db", key, t.getGoodsId()); //TODO 失败补偿
-        }
-        //
-        key = getNameKey(t.getWarehouseCode(), t.getGoodsName());
-        try {
-            this.del(key);
-        } catch (Exception e) {
-            log.error("{} mapping {} unCache failed, so skipped", key, t.getGoodsId()); //基于名称的搜索缓存操作失败就失败了
-        }
-
+        this.removeT(t);
     }
 
     public List<GoodsSaleInfo> findList(String warehouseCode, Integer fCategoryId) {

@@ -32,7 +32,6 @@ public class SaleGoodsQryManager {
         List<GoodsSaleInfo> list = saleGoodsCacheService.findList(warehouseCode, fCategoryId);
         //因为当其他地方调用getT时 内存中可能会出现非可售状态的商品,没有库存的可以依旧显示在页面
         return list.stream().
-                //filter(t->t.getInventory() > 0).
                 filter(t->t.getStatus() == SaleGoodsStatusEnum.SALEABLE.getV()).
                 collect(Collectors.toList());
     }

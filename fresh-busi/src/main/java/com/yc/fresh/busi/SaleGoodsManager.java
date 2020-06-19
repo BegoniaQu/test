@@ -6,73 +6,106 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.yc.fresh.busi.cache.SaleGoodsCacheService;
 import com.yc.fresh.busi.cache.SaleGoodsPicCacheService;
+import com.yc.fresh.busi.cache.WarehouseCacheService;
 import com.yc.fresh.busi.validator.SaleGoodsValidator;
 import com.yc.fresh.busi.validator.WarehouseStockValidator;
 import com.yc.fresh.common.ServiceAssert;
 import com.yc.fresh.common.exception.SCTargetExistsRuntimeException;
 import com.yc.fresh.common.utils.DateUtils;
-import com.yc.fresh.service.IGoodsSaleInfoService;
-import com.yc.fresh.service.IGoodsSalePicService;
-import com.yc.fresh.service.ISkuInfoService;
-import com.yc.fresh.service.entity.GoodsSaleInfo;
-import com.yc.fresh.service.entity.GoodsSalePic;
-import com.yc.fresh.service.entity.SkuInfo;
-import com.yc.fresh.service.entity.WarehouseStock;
+import com.yc.fresh.service.*;
+import com.yc.fresh.service.entity.*;
 import com.yc.fresh.service.enums.SaleGoodsStatusEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by quy on 2019/12/2.
  * Motto: you can do it
  */
+@Slf4j
 @Component
 public class SaleGoodsManager {
 
     private final IGoodsSaleInfoService goodsSaleInfoService;
     private final IGoodsSalePicService goodsSalePicService;
-    private final WarehouseStockValidator warehouseStockValidator;
+    private final IWarehouseStockService warehouseStockService;
     private final SaleGoodsValidator saleGoodsValidator;
     private final SaleGoodsCacheService saleGoodsCacheService;
     private final SaleGoodsPicCacheService saleGoodsPicCacheService;
+    private final ISkuInfoService skuInfoService;
+    private final WarehouseCacheService warehouseCacheService;
 
     @Autowired
-    public SaleGoodsManager(IGoodsSaleInfoService goodsSaleInfoService, WarehouseStockValidator warehouseStockValidator, IGoodsSalePicService goodsSalePicService, SaleGoodsValidator saleGoodsValidator, SaleGoodsCacheService saleGoodsCacheService, SaleGoodsPicCacheService saleGoodsPicCacheService) {
+    public SaleGoodsManager(IGoodsSaleInfoService goodsSaleInfoService, IGoodsSalePicService goodsSalePicService, IWarehouseStockService warehouseStockService, SaleGoodsValidator saleGoodsValidator, SaleGoodsCacheService saleGoodsCacheService, SaleGoodsPicCacheService saleGoodsPicCacheService, ISkuInfoService skuInfoService, WarehouseCacheService warehouseCacheService) {
         this.goodsSaleInfoService = goodsSaleInfoService;
-        this.warehouseStockValidator = warehouseStockValidator;
         this.goodsSalePicService = goodsSalePicService;
+        this.warehouseStockService = warehouseStockService;
         this.saleGoodsValidator = saleGoodsValidator;
         this.saleGoodsCacheService = saleGoodsCacheService;
         this.saleGoodsPicCacheService = saleGoodsPicCacheService;
+        this.skuInfoService = skuInfoService;
+        this.warehouseCacheService = warehouseCacheService;
     }
 
-    public List<GoodsSaleInfo> find(String warehouseCode, Long skuId) {
+    private ExecutorService asyncExecutor;
+
+    @PostConstruct
+    public void init() {
+        asyncExecutor = Executors.newSingleThreadExecutor(r -> {
+            Thread t = new Thread(r);
+            t.setDaemon(true);
+            t.setName("com.yc.fresh.busi.saleGd.notifier");
+            return t;
+        });
+    }
+
+    @PreDestroy
+    public void close() {
+        asyncExecutor.shutdown();
+        try {
+            asyncExecutor.awaitTermination(3, TimeUnit.SECONDS); //等待提交的task完成
+        } catch (InterruptedException e) {
+            log.error("", e);
+        }
+    }
+
+
+    public List<GoodsSaleInfo> findBySkuId(Long skuId) {
         QueryWrapper<GoodsSaleInfo> wrapper = Wrappers.query();
-        wrapper.eq(GoodsSaleInfo.WAREHOUSE_CODE, warehouseCode);
         wrapper.in(GoodsSaleInfo.SKU_ID, skuId);
         return this.goodsSaleInfoService.list(wrapper);
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void doAdd(GoodsSaleInfo t) {
-        WarehouseStock ws = warehouseStockValidator.validate(t.getWarehouseCode(), t.getSkuId());
+        //WarehouseStock ws = warehouseStockValidator.validate(t.getWarehouseCode(), t.getSkuId());
         checkDuplicate(t);
-        //SkuInfo sku = skuInfoService.getById(t.getSkuId());
-        t.setFCategoryId(ws.getFCategoryId());
-        t.setSCategoryId(ws.getSCategoryId());
-        t.setUnit(ws.getUnit());
+        SkuInfo sku = skuInfoService.getById(t.getSkuId());
+        t.setFCategoryId(sku.getFCategoryId());
+        t.setSCategoryId(sku.getSCategoryId());
+        t.setUnit(sku.getUnit());
         boolean flag = goodsSaleInfoService.save(t);
         ServiceAssert.isOk(flag, "add saleGoods failed");
+        //
+        skuInfoService.updateStatusToUsed(sku);
     }
 
     private void checkDuplicate(GoodsSaleInfo t) {
-        List<GoodsSaleInfo> dbList = find(t.getWarehouseCode(), t.getSkuId());
+        List<GoodsSaleInfo> dbList = findBySkuId(t.getSkuId());
         for (GoodsSaleInfo one : dbList) {
             if (one.getStatus() == SaleGoodsStatusEnum.INVALID.getV()) {
                 continue;
@@ -84,7 +117,9 @@ public class SaleGoodsManager {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void updateStatus(String goodsId, Integer newStatus) {
+    public void doTakeOnOrOff(String goodsId, Integer newStatus) {
+        Assert.isTrue(newStatus == SaleGoodsStatusEnum.SALEABLE.getV() ||
+                newStatus == SaleGoodsStatusEnum.UNSALEABLE.getV(), "illegal request");
         GoodsSaleInfo goods = saleGoodsValidator.validate(goodsId);
 
         UpdateWrapper<GoodsSaleInfo> wrapper = Wrappers.update();
@@ -96,29 +131,26 @@ public class SaleGoodsManager {
         if (newStatus == SaleGoodsStatusEnum.SALEABLE.getV()) { //上架
             List<Integer> properStatusList = Arrays.asList(SaleGoodsStatusEnum.UNSALEABLE.getV(), SaleGoodsStatusEnum.AVAILABLE.getV());
             Assert.isTrue(properStatusList.contains(currentStatus), "illegal operation");
+            //检验仓库商品
+            List<WarehouseStock> warehouseStocks = warehouseStockService.findBySkuId(goods.getSkuId());
+            Assert.notEmpty(warehouseStocks, String.format("sku: %s 请先入仓", goods.getSkuId()));
+            //
             wrapper.in(GoodsSaleInfo.STATUS, properStatusList);
-        }else if (newStatus == SaleGoodsStatusEnum.UNSALEABLE.getV()) {//下架
+        }else { //下架
             Assert.isTrue(currentStatus == SaleGoodsStatusEnum.SALEABLE.getV(), "illegal operation");
             wrapper.eq(GoodsSaleInfo.STATUS, currentStatus);
         }
-        boolean flag = this.goodsSaleInfoService.update(wrapper);
-        ServiceAssert.isOk(flag, "take on or take off failed");
-        if (newStatus == SaleGoodsStatusEnum.SALEABLE.getV()) { //上架
-            WarehouseStock stock = warehouseStockValidator.validate(goods.getWarehouseCode(), goods.getSkuId());
-            goods.setInventory(getRealNum(stock.getNum(), goods)); //TODO 后续可能会从saleableNum获取
+        ServiceAssert.isOk(this.goodsSaleInfoService.update(wrapper), "take on or take off failed");
+
+        if (newStatus == SaleGoodsStatusEnum.SALEABLE.getV()) {  //上架
             goods.setStatus(newStatus);//本次状态要带上
             this.saleGoodsCacheService.cache(goods);
-        } else if (newStatus == SaleGoodsStatusEnum.UNSALEABLE.getV()) {//下架
-           this.saleGoodsCacheService.unCache(goods);
+        } else { //下架
+            this.saleGoodsCacheService.unCache(goods);
         }
+        //做一些其他处理
+        asyncExecutor.submit(new SaleGdOnOrOffEvent(goods, newStatus));
     }
-
-    private int getRealNum(int stockNum, GoodsSaleInfo goods) {
-        Assert.isTrue(stockNum > 0, "商品库存不足,无法上架");
-        int unitOcuppyNum = goods.getBundles()*goods.getSaleCv();
-        return stockNum/unitOcuppyNum;
-    }
-
 
 
     @Transactional(readOnly = true)
@@ -160,11 +192,8 @@ public class SaleGoodsManager {
 
 
     @Transactional(readOnly = true)
-    public IPage<GoodsSaleInfo> page(String warehouseCode, String name, Integer fCategoryId, Integer sCategoryId, Integer status, IPage<GoodsSaleInfo> iPage) {
+    public IPage<GoodsSaleInfo> page(String name, Integer fCategoryId, Integer sCategoryId, Integer status, IPage<GoodsSaleInfo> iPage) {
         QueryWrapper<GoodsSaleInfo> wrapper = Wrappers.query();
-        if (!StringUtils.isEmpty(warehouseCode)) {
-            wrapper.eq(GoodsSaleInfo.WAREHOUSE_CODE, warehouseCode);
-        }
         if (!StringUtils.isEmpty(name)) {
             wrapper.like(GoodsSaleInfo.GOODS_NAME, name);
         }
@@ -203,4 +232,41 @@ public class SaleGoodsManager {
         wrapper.eq(GoodsSalePic.GOODS_ID, goodsId);
         return this.goodsSalePicService.list(wrapper);
     }
+
+
+    private int getRealNum(int stockNum, GoodsSaleInfo goods) {
+        int unitOcuppyNum = goods.getBundles()*goods.getSaleCv();
+        return stockNum/unitOcuppyNum;
+    }
+
+
+
+    public class SaleGdOnOrOffEvent implements Runnable{
+
+        private GoodsSaleInfo goods;
+        private int action;
+
+        public SaleGdOnOrOffEvent(GoodsSaleInfo saleInfo, int action) {
+            this.goods = saleInfo;
+            this.action = action;
+        }
+
+        @Override
+        public void run() {
+            List<WarehouseStock> warehouseStocks = warehouseStockService.findBySkuId(goods.getSkuId());
+            if (action == SaleGoodsStatusEnum.SALEABLE.getV()) {
+                for (WarehouseStock warehouseStock : warehouseStocks) {
+                    saleGoodsCacheService.addMapping(warehouseStock.getWarehouseCode(), goods.getFCategoryId(), goods.getGoodsId());
+                    saleGoodsCacheService.addNameBasedSearch(warehouseStock.getWarehouseCode(), goods.getGoodsName(), goods.getGoodsId());
+                }
+            } else {
+                List<Warehouse> warehouses = warehouseCacheService.findValidWarehouse();
+                for (Warehouse warehouse : warehouses) {
+                    saleGoodsCacheService.unMapping(warehouse.getCode(), goods.getFCategoryId(), goods.getGoodsId());
+                    saleGoodsCacheService.removeNameBasedSearch(warehouse.getCode(), goods.getGoodsName());
+                }
+            }
+        }
+    }
 }
+

@@ -20,9 +20,6 @@ import java.math.BigDecimal;
 @ApiModel(description = "售卖商品增加")
 public class GoodsAddReqBean {
 
-    @ApiModelProperty(value = "仓库编码", required = true)
-    @NotBlank
-    private String warehouseCode;
 
     @ApiModelProperty(value = "SKU编码", required = true)
     @NotNull

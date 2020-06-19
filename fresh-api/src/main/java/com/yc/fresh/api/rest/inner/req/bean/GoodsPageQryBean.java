@@ -15,8 +15,8 @@ import lombok.Setter;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GoodsPageQryBean extends Page {
 
-    @ApiParam("仓库编码")
-    private String warehouseCode;
+   /* @ApiParam("仓库编码")
+    private String warehouseCode;*/
 
     @ApiParam("商品名称")
     private String goodsName;

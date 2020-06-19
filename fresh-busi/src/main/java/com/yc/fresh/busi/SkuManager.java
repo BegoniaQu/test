@@ -56,10 +56,10 @@ public class SkuManager {
         Assert.isTrue(sku.getStatus() == SkuStatusEnum.unuse.getV(), "SKU已被使用, 无法更新");
         UnitTypeEnum.verify(t.getUnitType());
         //要没有库存
-        QueryWrapper<WarehouseStock> queryWrapper = Wrappers.query();
+       /* QueryWrapper<WarehouseStock> queryWrapper = Wrappers.query();
         queryWrapper.eq(WarehouseStock.SKU_ID, t.getSkuId());
         List<WarehouseStock> list = this.warehouseStockService.list(queryWrapper);
-        Assert.isTrue(CollectionUtils.isEmpty(list), "已添加库存, 不能更新");
+        Assert.isTrue(CollectionUtils.isEmpty(list), "已添加库存, 不能更新");*/
         boolean isOk = skuInfoService.updateById(t);
         ServiceAssert.isOk(isOk, "update sku failed");
     }

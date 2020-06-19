@@ -12,6 +12,7 @@ import com.yc.fresh.common.exception.SCApiRuntimeException;
 import com.yc.fresh.common.lock.DistributedLock;
 import com.yc.fresh.common.tp.WxRequester;
 import com.yc.fresh.common.tp.bean.WxAuthInfo;
+import com.yc.fresh.common.utils.NumberUtils;
 import com.yc.fresh.service.entity.UserInfo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -47,14 +48,12 @@ public class WxCustomerApi {
         this.distributedLock = distributedLock;
     }
 
-    private void checkMobile(String mobile) {
-        Assert.isTrue(mobile.length() == 11, "无效的号码");
-    }
+
 
     @PostMapping("/reg")
     @ApiOperation(value="注册", produces=APPLICATION_JSON_VALUE, response = RegisterRespBean.class, httpMethod = "POST")
     public RegisterRespBean register(@Valid @RequestBody RegisterReqBean reqBean, HttpServletRequest request) {
-        checkMobile(reqBean.getMobile());
+        NumberUtils.checkMobile(reqBean.getMobile());
         String openid = (String)request.getAttribute("openid");
         String lockName = LockNameBuilder.buildOpenid(openid);
         LockProxy lock = distributedLock.lock(lockName);
@@ -82,6 +81,7 @@ public class WxCustomerApi {
                 this.customerManager.updateTk(userInfo.getUserId(), respBean.getTk());
             }
         }*/
+        //TODO 查找用户默认收货地址,
         return respBean;
     }
 

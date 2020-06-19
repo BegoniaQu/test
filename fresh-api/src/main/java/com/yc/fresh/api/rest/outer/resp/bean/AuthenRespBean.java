@@ -22,4 +22,6 @@ public class AuthenRespBean extends SuperRespBean {
 
     @ApiModelProperty("注册时用")
     private String spot;
+
+
 }

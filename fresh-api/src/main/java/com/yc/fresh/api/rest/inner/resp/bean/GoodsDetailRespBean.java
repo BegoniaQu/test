@@ -24,8 +24,8 @@ public class GoodsDetailRespBean {
     @ApiModelProperty("商品名称")
     private String goodsName;
 
-    @ApiModelProperty("仓库")
-    private String warehouseName;
+   /* @ApiModelProperty("仓库")
+    private String warehouseName;*/
 
     @ApiModelProperty("一级分类")
     private String fCategory;

@@ -39,6 +39,4 @@ public class ShopCarRespBean {
     @ApiModelProperty("库存数量")
     private int stockNum;
 
-    @ApiModelProperty("购物车中的商品状况")
-    private int state;
 }

@@ -28,5 +28,7 @@ public class SaleGdSearchRespBean {
     private BigDecimal rawPrice;
     @ApiModelProperty("现价")
     private BigDecimal salePrice;
+    @ApiModelProperty("库存")
+    private int stockNum;
 }
 

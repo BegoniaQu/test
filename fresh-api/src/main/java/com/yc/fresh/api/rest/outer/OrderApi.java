@@ -1,12 +1,15 @@
 package com.yc.fresh.api.rest.outer;
 
-import com.yc.fresh.service.IUserOrderService;
+import com.yc.fresh.api.component.UserVerifier;
+import com.yc.fresh.api.rest.outer.req.bean.OrderAddReqBean;
+import com.yc.fresh.busi.outer.OrderManager;
+import com.yc.fresh.service.entity.UserInfo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 
 
 /**
@@ -18,18 +21,26 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("rest/outer/a/o")
 public class OrderApi {
 
-    private final IUserOrderService userOrderService;
+    private final OrderManager orderManager;
+    private final UserVerifier userVerifier;
 
-
-    @Autowired
-    public OrderApi(IUserOrderService userOrderService) {
-        this.userOrderService = userOrderService;
+    public OrderApi(OrderManager orderManager, UserVerifier userVerifier) {
+        this.orderManager = orderManager;
+        this.userVerifier = userVerifier;
     }
+
+    @ApiOperation(value="订单创建", produces="application/json", httpMethod = "POST")
+    @PostMapping("/crt")
+    public void add(@Valid @RequestBody OrderAddReqBean orderAddReqBean, HttpServletRequest request) {
+        UserInfo user = userVerifier.verify(request);
+
+    }
+
 
 
     @ApiOperation(value="订单列表", produces="application/json", httpMethod = "GET")
     @GetMapping("/list")
-    public void test() throws InterruptedException {
+    public void test()  {
 
     }
 }

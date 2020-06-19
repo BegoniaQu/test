@@ -3,7 +3,6 @@ package com.yc.fresh.api.rest.outer.convertor;
 import com.yc.fresh.api.rest.outer.resp.bean.SaleGdBriefRespVO;
 import com.yc.fresh.api.rest.outer.resp.bean.SaleGdDetailVO;
 import com.yc.fresh.api.rest.outer.resp.bean.SaleGdSearchRespBean;
-import com.yc.fresh.busi.enums.GoodsStateEnum;
 import com.yc.fresh.service.entity.GdCategory;
 import com.yc.fresh.service.entity.GoodsSaleInfo;
 import com.yc.fresh.service.entity.GoodsSalePic;
@@ -19,7 +18,7 @@ import java.util.stream.Collectors;
 public class SaleGoodsConvertor {
 
 
-    public static SaleGdBriefRespVO convert(List<GoodsSaleInfo> saleGoods, List<GdCategory> sCategories) {
+    public static SaleGdBriefRespVO convert(List<GoodsSaleInfo> saleGoods, List<GdCategory> sCategories, Map<Long, Integer> inventoryMap) {
         SaleGdBriefRespVO vo = new SaleGdBriefRespVO();
         Map<Integer, String> sCategoryMap = Collections.emptyMap();
         if (!CollectionUtils.isEmpty(sCategories)) {
@@ -34,7 +33,8 @@ public class SaleGoodsConvertor {
             saleGd.setSalePrice(t.getSalePrice());
             saleGd.setDescription(t.getDescription());
             saleGd.setMPicPath(t.getMPicPath());
-            saleGd.setStockNum(t.getInventory());
+            Integer inventory = inventoryMap.get(t.getSkuId());
+            saleGd.setStockNum(inventory == null ? 0 : inventory);
             return saleGd;
         }).collect(Collectors.groupingBy(m->m.getScId()));
         vo.setGdMap(saleGdMap);
@@ -42,11 +42,10 @@ public class SaleGoodsConvertor {
         return vo;
     }
 
-    public static SaleGdDetailVO convert(GoodsSaleInfo goodsSaleInfo, List<GoodsSalePic> pics) {
+    public static SaleGdDetailVO convert(GoodsSaleInfo goodsSaleInfo, int inventory, List<GoodsSalePic> pics) {
         SaleGdDetailVO vo = new SaleGdDetailVO();
         vo.setGoodsId(goodsSaleInfo.getGoodsId());
-        int result = GoodsStateEnum.check(goodsSaleInfo);
-        vo.setState(result);
+        vo.setStockNum(inventory);
         vo.setDescrPath(goodsSaleInfo.getDescrPath());
         List<String> urls = new ArrayList<>();
         vo.setPics(urls);
@@ -60,7 +59,7 @@ public class SaleGoodsConvertor {
         return vo;
     }
 
-    public static List<SaleGdSearchRespBean> convert(List<GoodsSaleInfo> goodsSaleInfos) {
+    public static List<SaleGdSearchRespBean> convert(List<GoodsSaleInfo> goodsSaleInfos, Map<Long, Integer> inventoryMap) {
         List<SaleGdSearchRespBean> respBeans = new ArrayList<>();
         for (GoodsSaleInfo one : goodsSaleInfos) {
             SaleGdSearchRespBean respBean = new SaleGdSearchRespBean();
@@ -69,6 +68,8 @@ public class SaleGoodsConvertor {
             respBean.setMPicPath(one.getMPicPath());
             respBean.setRawPrice(one.getRawPrice());
             respBean.setSalePrice(one.getSalePrice());
+            Integer inventory = inventoryMap.get(one.getSkuId());
+            respBean.setStockNum(inventory == null ? 0 : inventory);
             respBeans.add(respBean);
         }
         return respBeans;

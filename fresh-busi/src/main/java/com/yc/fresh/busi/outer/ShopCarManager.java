@@ -2,10 +2,12 @@ package com.yc.fresh.busi.outer;
 
 import com.yc.fresh.busi.cache.SaleGoodsCacheService;
 import com.yc.fresh.busi.cache.ShopCarCacheService;
+import com.yc.fresh.busi.cache.SkuInventoryCacheService;
 import com.yc.fresh.busi.enums.GoodsStateEnum;
 import com.yc.fresh.common.exception.SCApiRuntimeException;
 import com.yc.fresh.service.entity.GoodsSaleInfo;
 import com.yc.fresh.service.entity.ShoppingCar;
+import com.yc.fresh.service.enums.SaleGoodsStatusEnum;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
@@ -21,10 +23,12 @@ public class ShopCarManager {
 
     private final ShopCarCacheService shopCarCacheService;
     private final SaleGoodsCacheService saleGoodsCacheService;
+    private final SkuInventoryCacheService skuInventoryCacheService;
 
-    public ShopCarManager(ShopCarCacheService shopCarCacheService, SaleGoodsCacheService saleGoodsCacheService) {
+    public ShopCarManager(ShopCarCacheService shopCarCacheService, SaleGoodsCacheService saleGoodsCacheService, SkuInventoryCacheService skuInventoryCacheService) {
         this.shopCarCacheService = shopCarCacheService;
         this.saleGoodsCacheService = saleGoodsCacheService;
+        this.skuInventoryCacheService = skuInventoryCacheService;
     }
 
 
@@ -33,13 +37,17 @@ public class ShopCarManager {
     }
 
 
-    public int populate(ShoppingCar t) {
+    public int populate(ShoppingCar t, String warehouseCode) {
         GoodsSaleInfo goodsSaleInfo = saleGoodsCacheService.getT(t.getGoodsId());
         Assert.notNull(goodsSaleInfo, "illegal request");
-        int result = GoodsStateEnum.check(goodsSaleInfo);
-        if (result != GoodsStateEnum.ok.getState()) {
-            return result;
+        if (goodsSaleInfo.getStatus() != SaleGoodsStatusEnum.SALEABLE.getV()) {
+            return GoodsStateEnum.gdDown.getState();
         }
+        Integer inventory = this.skuInventoryCacheService.getInventory(warehouseCode, goodsSaleInfo.getSkuId());
+        if (inventory <= 0) {
+            return GoodsStateEnum.saleOut.getState();
+        }
+        //
         boolean isOk = shopCarCacheService.populateCar(t);
         if (!isOk) {
             throw new SCApiRuntimeException();

@@ -3,6 +3,8 @@ package com.yc.fresh.service;
 import com.yc.fresh.service.entity.WarehouseStock;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.List;
+
 /**
  * <p>
  * 库存 服务类
@@ -13,4 +15,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IWarehouseStockService extends IService<WarehouseStock> {
 
+
+    List<WarehouseStock> findBySkuId(Long skuId);
 }

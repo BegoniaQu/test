@@ -1,15 +1,18 @@
 package com.yc.fresh.api.rest.outer;
 
+import com.google.common.collect.Lists;
 import com.yc.fresh.api.component.UserVerifier;
 import com.yc.fresh.api.rest.outer.convertor.ShopCarConvertor;
 import com.yc.fresh.api.rest.outer.req.bean.ShopCarAddReqBean;
 import com.yc.fresh.api.rest.outer.resp.bean.ShopCarOperationRespBean;
 import com.yc.fresh.api.rest.outer.resp.bean.ShopCarRespBean;
+import com.yc.fresh.busi.outer.InventoryManger;
 import com.yc.fresh.busi.outer.SaleGoodsQryManager;
 import com.yc.fresh.busi.outer.ShopCarManager;
 import com.yc.fresh.service.entity.GoodsSaleInfo;
 import com.yc.fresh.service.entity.ShoppingCar;
 import com.yc.fresh.service.entity.UserInfo;
+import com.yc.fresh.service.enums.SaleGoodsStatusEnum;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.util.Assert;
@@ -21,6 +24,8 @@ import javax.validation.Valid;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
@@ -37,11 +42,13 @@ public class ShopCarApi {
     private final UserVerifier userVerifier;
     private final ShopCarManager shopCarManager;
     private final SaleGoodsQryManager saleGoodsQryManager;
+    private final InventoryManger inventoryManger;
 
-    public ShopCarApi(UserVerifier userVerifier, ShopCarManager shopCarManager, SaleGoodsQryManager saleGoodsQryManager) {
+    public ShopCarApi(UserVerifier userVerifier, ShopCarManager shopCarManager, SaleGoodsQryManager saleGoodsQryManager, InventoryManger inventoryManger) {
         this.userVerifier = userVerifier;
         this.shopCarManager = shopCarManager;
         this.saleGoodsQryManager = saleGoodsQryManager;
+        this.inventoryManger = inventoryManger;
     }
 
 
@@ -55,7 +62,15 @@ public class ShopCarApi {
         }
         List<String> goodsIdList = shoppingCars.stream().map(t -> t.getGoodsId()).collect(Collectors.toList());
         List<GoodsSaleInfo> goodsSaleInfos = this.saleGoodsQryManager.findSaleGoods(goodsIdList);
-        return ShopCarConvertor.convert2BeanList(shoppingCars, goodsSaleInfos);
+        //查库存
+        String wsCode = request.getParameter("wsCode");
+        Assert.hasText(wsCode, "missing parameter");
+        Set<Long> skuIdSet = goodsSaleInfos.stream().
+                filter(t -> t.getStatus() == SaleGoodsStatusEnum.SALEABLE.getV()).
+                map(t -> t.getSkuId()).
+                collect(Collectors.toSet());
+        Map<Long, Integer> inventoryMap = inventoryManger.findInventory(wsCode, Lists.newArrayList(skuIdSet.toArray(new Long[0])));
+        return ShopCarConvertor.convert2BeanList(shoppingCars, goodsSaleInfos, inventoryMap);
     }
 
 
@@ -65,7 +80,9 @@ public class ShopCarApi {
         UserInfo user = userVerifier.verify(request);
         Assert.isTrue(reqBean.getNum() != 0, "invalid request");
         ShoppingCar t = ShopCarConvertor.convert2Entity(user.getUserId(), reqBean);
-        int result = this.shopCarManager.populate(t);
+        String wsCode = request.getParameter("wsCode");
+        Assert.hasText(wsCode, "missing parameter");
+        int result = this.shopCarManager.populate(t, wsCode);
         ShopCarOperationRespBean respBean = new ShopCarOperationRespBean();
         respBean.setResult(result);
         return respBean;
